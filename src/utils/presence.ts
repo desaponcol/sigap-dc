@@ -7,14 +7,14 @@ export interface Coordinates {
   longitude: number;
 }
 
-// Office Coordinate (Gedung Pusat SIGAP / Kantor Desa)
+// Office Coordinate Default (Kantor Balai Desa, Magetan)
 export const OFFICE_COORDINATES: Coordinates = {
-  latitude: -6.175392,
-  longitude: 106.827153, // Monas / Pusat Pemerintahan area
+  latitude: -7.712345,
+  longitude: 111.234567, // Titik Balai Desa (Jawa Timur)
 };
 
-export const OFFICE_NAME = 'Gedung Pusat SIGAP';
-export const OFFICE_ADDRESS = 'Gedung Pusat Pemerintahan, Lantai 4, Jakarta Pusat';
+export const OFFICE_NAME = 'Kantor Balai Desa';
+export const OFFICE_ADDRESS = 'Kantor Balai Desa, Jawa Timur';
 export const DEFAULT_ALLOWED_RADIUS_METERS = 50;
 
 /**

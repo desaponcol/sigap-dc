@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { AttendanceRecord, AttendanceStatus, UserProfile } from '../types/index.ts';
 import { RADAR_MAP_URL } from '../data/mockData.ts';
-import { formatTimeWIB, OFFICE_ADDRESS } from '../utils/presence.ts';
+import { formatTimeWIB } from '../utils/presence.ts';
+import { TenantInfo } from '../services/supabase.ts';
 
 interface PresensiScreenProps {
   user: UserProfile;
+  selectedTenant?: TenantInfo;
   isInsideRadius: boolean;
   distanceMeters: number;
   onPresensiSuccess: (record: AttendanceRecord) => void;
@@ -13,6 +15,7 @@ interface PresensiScreenProps {
 
 export const PresensiScreen: React.FC<PresensiScreenProps> = ({
   user,
+  selectedTenant,
   isInsideRadius,
   distanceMeters,
   onPresensiSuccess,
@@ -56,7 +59,9 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
     const isHadir = selectedStatus === 'HADIR';
 
     let calculatedLocation = isInsideRadius
-      ? user.instansi || 'Kantor Balai Desa'
+      ? selectedTenant?.namaDesa
+        ? `Kantor Balai ${selectedTenant.namaDesa}`
+        : user.instansi || 'Kantor Balai Desa'
       : 'Luar Radius Kantor Balai Desa';
 
     if (isDinas) {
@@ -76,6 +81,9 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
       calculatedNote = 'Surat Dokter Terlampir';
     }
 
+    const officialLat = selectedTenant?.officeLat ?? -7.712345;
+    const officialLng = selectedTenant?.officeLng ?? 111.234567;
+
     const newRecord: AttendanceRecord = {
       id: `att-${Date.now()}`,
       date: isoDate,
@@ -87,8 +95,8 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
       note: calculatedNote,
       locationName: calculatedLocation,
       distanceMeters: isDinas ? 0 : distanceMeters,
-      latitude: isHadir ? -7.712345 : isDinas ? -7.698421 : undefined,
-      longitude: isHadir ? 111.234567 : isDinas ? 111.248102 : undefined,
+      latitude: isHadir ? officialLat : isDinas ? officialLat + 0.012 : undefined,
+      longitude: isHadir ? officialLng : isDinas ? officialLng + 0.015 : undefined,
       verified: true,
     };
 
@@ -425,14 +433,22 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
             location_on
           </span>
           <div className="flex flex-col">
-            <p className="font-body text-xs font-bold text-[#1c1c17]">
-              {selectedStatus === 'DINAS' ? 'Lokasi Penugasan Dinas Luar' : 'Lokasi Terdeteksi'}
+            <p className="font-body text-xs font-bold text-[#1c1c17] flex items-center gap-1.5">
+              <span>{selectedStatus === 'DINAS' ? 'Lokasi Penugasan Dinas Luar' : 'Lokasi Terdaftar (Google Maps)'}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             </p>
             <p className="font-body text-[11px] text-[#4d4635] leading-tight">
               {selectedStatus === 'DINAS'
                 ? tujuanDinas.trim() || 'Titik penugasan perjalanan dinas di luar balai desa'
-                : OFFICE_ADDRESS}
+                : selectedTenant
+                ? `Kantor Balai ${selectedTenant.namaDesa}, Kec. ${selectedTenant.kecamatan || 'Poncol'}, Kab. ${selectedTenant.kabupaten || 'Magetan'}`
+                : user.instansi}
             </p>
+            {selectedStatus !== 'DINAS' && (
+              <p className="text-[10px] text-[#735c00] font-mono mt-0.5">
+                GPS: {selectedTenant?.officeLat ?? -7.712345}, {selectedTenant?.officeLng ?? 111.234567} (Radius &le;{selectedTenant?.allowedRadiusMeters ?? 50}m)
+              </p>
+            )}
           </div>
         </div>
       </section>

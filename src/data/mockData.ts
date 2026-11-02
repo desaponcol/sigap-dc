@@ -754,7 +754,7 @@ function generateDynamicAttendance(): AttendanceRecord[] {
       locationName:
         entry.locationName ||
         (entry.status === 'HADIR'
-          ? 'Gedung Pusat SIGAP'
+          ? 'Kantor Balai Desa'
           : entry.status === 'DINAS'
           ? 'Lokasi Perjalanan Dinas'
           : 'Luar Radius Kantor'),
@@ -792,7 +792,7 @@ function generateDynamicAttendance(): AttendanceRecord[] {
       status: 'HADIR',
       checkInTime: '08:00',
       checkOutTime: '17:00',
-      locationName: 'Gedung Pusat SIGAP',
+      locationName: 'Kantor Balai Desa',
       distanceMeters: 10 + (i % 5),
       latitude: -7.712345 + (i % 4) * 0.00001,
       longitude: 111.234567 + (i % 3) * 0.00001,

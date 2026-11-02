@@ -499,6 +499,7 @@ export default function App() {
       {currentScreen === 'dashboard' && (
         <DashboardScreen
           user={user}
+          selectedTenant={selectedTenant}
           attendanceRecords={villageAttendanceRecords}
           workReports={villageWorkReports}
           isInsideRadius={isInsideRadius}
@@ -512,6 +513,7 @@ export default function App() {
       {currentScreen === 'presensi' && (
         <PresensiScreen
           user={user}
+          selectedTenant={selectedTenant}
           isInsideRadius={isInsideRadius}
           distanceMeters={distanceMeters}
           onPresensiSuccess={handlePresensiSuccess}

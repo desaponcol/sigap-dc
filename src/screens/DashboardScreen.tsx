@@ -1,9 +1,11 @@
 import React from 'react';
 import { AppScreen, AttendanceRecord, UserProfile, WorkReport } from '../types/index.ts';
 import { MAP_IMAGE_URL } from '../data/mockData.ts';
+import { TenantInfo } from '../services/supabase.ts';
 
 interface DashboardScreenProps {
   user: UserProfile;
+  selectedTenant?: TenantInfo;
   attendanceRecords: AttendanceRecord[];
   workReports: WorkReport[];
   isInsideRadius: boolean;
@@ -15,6 +17,7 @@ interface DashboardScreenProps {
 
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   user,
+  selectedTenant,
   attendanceRecords,
   workReports,
   isInsideRadius,
@@ -304,12 +307,16 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
               location_on
             </span>
           </div>
-          <div>
-            <p className="text-xs font-bold text-[#6B4F1D] uppercase tracking-[0.06em] font-label">
-              Lokasi Terdaftar
+          <div className="min-w-0 pr-4">
+            <p className="text-[10px] sm:text-xs font-bold text-[#6B4F1D] uppercase tracking-[0.06em] font-label flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+              <span>Titik Kantor Terdaftar (Google Maps)</span>
             </p>
-            <p className="text-sm font-bold text-[#1c1c17] font-headline">
-              Gedung Pusat SIGAP
+            <p className="text-sm font-bold text-[#1c1c17] font-headline truncate">
+              {selectedTenant?.namaDesa ? `Kantor Balai ${selectedTenant.namaDesa}` : user.instansi}
+            </p>
+            <p className="text-[10px] text-[#5E4B32] font-mono mt-0.5 truncate">
+              Titik GPS: {selectedTenant?.officeLat ?? -7.712345}, {selectedTenant?.officeLng ?? 111.234567} &bull; Radius {selectedTenant?.allowedRadiusMeters ?? 50}m
             </p>
           </div>
         </div>
