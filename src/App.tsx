@@ -477,13 +477,13 @@ export default function App() {
   }
 
   return (
-    <div className="bg-[#fcf9f0] font-body text-[#1c1c17] min-h-screen relative selection:bg-[#d4af37]/30 selection:text-[#735c00]">
-      {/* Texture Layer */}
-      <div className="fixed inset-0 pointer-events-none grain-texture"></div>
-
-      {/* Decorative Warm Ambient Glows */}
-      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#ffe088]/15 rounded-full blur-[140px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#fdc39a]/15 rounded-full blur-[140px] pointer-events-none"></div>
+    <div className="bg-[#fcf9f0] font-body text-[#1c1c17] min-h-screen w-full max-w-full overflow-x-hidden relative selection:bg-[#d4af37]/30 selection:text-[#735c00]">
+      {/* Texture & Decorative Warm Ambient Glows (Clipped to prevent Android overflow) */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute inset-0 grain-texture"></div>
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#ffe088]/15 rounded-full blur-[140px]"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#fdc39a]/15 rounded-full blur-[140px]"></div>
+      </div>
 
       {/* Top Header App Bar */}
       <TopAppBar

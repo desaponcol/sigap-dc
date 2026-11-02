@@ -24,10 +24,10 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
 
   return (
     <nav
-      className="fixed bottom-0 w-full z-40 flex justify-center items-center px-4 pb-6 pointer-events-none md:hidden"
-      style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+      className="fixed bottom-0 left-0 right-0 w-full max-w-full z-40 flex justify-center items-center px-3 pb-4 pointer-events-none md:hidden overflow-hidden"
+      style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}
     >
-      <div className="pointer-events-auto bg-white/95 backdrop-blur-xl shadow-[0_12px_32px_rgba(28,28,23,0.12)] border border-[#d0c5af]/25 rounded-full px-2 py-1 flex justify-around items-center w-[92%] max-w-sm">
+      <div className="pointer-events-auto bg-white/95 backdrop-blur-xl shadow-[0_8px_28px_rgba(28,28,23,0.12)] border border-[#d0c5af]/25 rounded-full px-1.5 py-1 flex justify-around items-center w-[94%] max-w-sm">
         {navItems.map((item) => {
           const isActive = currentScreen === item.screen;
 

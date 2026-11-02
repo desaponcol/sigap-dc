@@ -80,11 +80,11 @@ export const TentangScreen: React.FC<TentangScreenProps> = ({
 
   return (
     <main
-      className="pt-24 px-4 sm:px-6 max-w-4xl mx-auto space-y-8 animate-fadeIn"
+      className="pt-20 sm:pt-24 px-3 sm:px-6 max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-fadeIn w-full overflow-hidden"
       style={{ paddingBottom: 'calc(5rem + 32px + env(safe-area-inset-bottom, 0px))' }}
     >
       {/* Top Header & Breadcrumb */}
-      <section className="space-y-4">
+      <section className="space-y-3 sm:space-y-4">
         <div className="flex items-center justify-between">
           <button
             onClick={() => onNavigate('dashboard')}
@@ -101,95 +101,95 @@ export const TentangScreen: React.FC<TentangScreenProps> = ({
         </div>
 
         {/* Hero Banner Card */}
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#1c1c17] via-[#2a271e] to-[#735c00] text-white p-7 sm:p-9 shadow-xl border border-[#d4af37]/30">
+        <div className="relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-[#1c1c17] via-[#2a271e] to-[#735c00] text-white p-5 sm:p-9 shadow-xl border border-[#d4af37]/30">
           {/* Ambient Glow Elements */}
-          <div className="absolute top-0 right-0 w-72 h-72 bg-[#d4af37]/20 rounded-full blur-[80px] pointer-events-none" />
-          <div className="absolute bottom-0 left-10 w-48 h-48 bg-[#ffe088]/15 rounded-full blur-[60px] pointer-events-none" />
+          <div className="absolute top-0 right-0 w-64 sm:w-72 h-64 sm:h-72 bg-[#d4af37]/20 rounded-full blur-[80px] pointer-events-none" />
+          <div className="absolute bottom-0 left-10 w-40 sm:w-48 h-40 sm:h-48 bg-[#ffe088]/15 rounded-full blur-[60px] pointer-events-none" />
 
-          <div className="relative z-10 space-y-4 max-w-2xl">
+          <div className="relative z-10 space-y-3 sm:space-y-4 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#ffe088] text-xs font-bold uppercase tracking-wider">
               <span className="material-symbols-outlined text-sm">fingerprint</span>
               <span>Sistem Presensi &amp; E-Kinerja Aparatur Desa</span>
             </div>
 
-            <div className="space-y-2">
-              <h1 className="text-3xl sm:text-4xl font-extrabold font-headline tracking-tight leading-[1.2] text-white">
+            <div className="space-y-1.5 sm:space-y-2">
+              <h1 className="text-2xl sm:text-4xl font-extrabold font-headline tracking-tight leading-[1.2] text-white">
                 SIGAP <span className="text-[#ffe088] font-normal">Aparatur Desa</span>
               </h1>
-              <p className="text-sm sm:text-base text-stone-300 leading-relaxed font-body font-light">
+              <p className="text-xs sm:text-base text-stone-300 leading-relaxed font-body font-light">
                 Platform digital presensi berbasis geofencing dan laporan kinerja harian terintegrasi. Dirancang untuk menegakkan disiplin, transparansi, dan modernisasi birokrasi pemerintahan desa di seluruh Indonesia.
               </p>
             </div>
 
             {/* Quick Badges */}
-            <div className="flex flex-wrap gap-2 pt-2">
-              <span className="text-[11px] font-semibold bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full text-stone-200 border border-white/10 flex items-center gap-1">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2 pt-1 sm:pt-2">
+              <span className="text-[10px] sm:text-[11px] font-semibold bg-white/10 backdrop-blur-sm px-2.5 py-1 rounded-full text-stone-200 border border-white/10 flex items-center gap-1">
                 <span className="material-symbols-outlined text-xs text-[#ffe088]">check_circle</span>
                 Multi-Tenant Terisolasi
               </span>
-              <span className="text-[11px] font-semibold bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full text-stone-200 border border-white/10 flex items-center gap-1">
+              <span className="text-[10px] sm:text-[11px] font-semibold bg-white/10 backdrop-blur-sm px-2.5 py-1 rounded-full text-stone-200 border border-white/10 flex items-center gap-1">
                 <span className="material-symbols-outlined text-xs text-[#ffe088]">check_circle</span>
                 Geofence Balai Desa (≤50m)
               </span>
-              <span className="text-[11px] font-semibold bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full text-stone-200 border border-white/10 flex items-center gap-1">
+              <span className="text-[10px] sm:text-[11px] font-semibold bg-white/10 backdrop-blur-sm px-2.5 py-1 rounded-full text-stone-200 border border-white/10 flex items-center gap-1">
                 <span className="material-symbols-outlined text-xs text-[#ffe088]">check_circle</span>
-                Kemitraan Arunika Kreatif Media
+                Kemitraan Arunika Media
               </span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Navigation Tabs */}
-      <nav aria-label="Tab Menu Tentang" className="flex items-center gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl border border-[#d0c5af]/30 shadow-xs overflow-x-auto scrollbar-none">
+      {/* Navigation Tabs (Mobile-first responsive 2x2 grid) */}
+      <nav aria-label="Tab Menu Tentang" className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl border border-[#d0c5af]/30 shadow-xs">
         <button
           onClick={() => setActiveTab('aplikasi')}
-          className={`flex-1 min-w-[120px] py-2.5 px-4 rounded-xl font-headline text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+          className={`w-full py-2.5 px-2 rounded-xl font-headline text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer truncate ${
             activeTab === 'aplikasi'
               ? 'bg-gradient-to-r from-[#735c00] to-[#d4af37] text-white shadow-md'
               : 'text-[#805533] hover:bg-[#f6f3ea]'
           }`}
         >
-          <span className="material-symbols-outlined text-base">info</span>
-          <span>Tentang SIGAP</span>
+          <span className="material-symbols-outlined text-base shrink-0">info</span>
+          <span className="truncate">Tentang SIGAP</span>
         </button>
 
         <button
           onClick={() => setActiveTab('fitur')}
-          className={`flex-1 min-w-[120px] py-2.5 px-4 rounded-xl font-headline text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+          className={`w-full py-2.5 px-2 rounded-xl font-headline text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer truncate ${
             activeTab === 'fitur'
               ? 'bg-gradient-to-r from-[#735c00] to-[#d4af37] text-white shadow-md'
               : 'text-[#805533] hover:bg-[#f6f3ea]'
           }`}
         >
-          <span className="material-symbols-outlined text-base">stars</span>
-          <span>Fitur Unggulan</span>
+          <span className="material-symbols-outlined text-base shrink-0">stars</span>
+          <span className="truncate">Fitur Unggulan</span>
         </button>
 
         <button
           onClick={() => setActiveTab('pengembang')}
-          className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl font-headline text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+          className={`w-full py-2.5 px-2 rounded-xl font-headline text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer truncate ${
             activeTab === 'pengembang'
               ? 'bg-gradient-to-r from-[#735c00] to-[#d4af37] text-white shadow-md'
               : 'text-[#805533] hover:bg-[#f6f3ea]'
           }`}
         >
-          <span className="material-symbols-outlined text-base">business</span>
-          <span>Profil Pengembang</span>
+          <span className="material-symbols-outlined text-base shrink-0">business</span>
+          <span className="truncate">Pengembang</span>
         </button>
 
         <button
           onClick={() => setActiveTab('lisensi')}
-          className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl font-headline text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+          className={`w-full py-2.5 px-2 rounded-xl font-headline text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer truncate ${
             activeTab === 'lisensi'
               ? 'bg-gradient-to-r from-[#735c00] to-[#d4af37] text-white shadow-md'
               : 'text-[#805533] hover:bg-[#f6f3ea]'
           }`}
         >
-          <span className="material-symbols-outlined text-base">
+          <span className="material-symbols-outlined text-base shrink-0">
             {user.role === 'admin_desa' ? 'verified_user' : 'badge'}
           </span>
-          <span>{user.role === 'admin_desa' ? 'Peran & Lisensi' : 'Hak Akses Aparatur'}</span>
+          <span className="truncate">{user.role === 'admin_desa' ? 'Peran & Lisensi' : 'Hak Akses Aparatur'}</span>
         </button>
       </nav>
 

@@ -26,16 +26,16 @@ export const RekapScreen: React.FC<RekapScreenProps> = ({
 
   return (
     <main
-      className="pt-24 px-6 max-w-5xl mx-auto animate-fadeIn relative"
+      className="pt-20 sm:pt-24 px-3 sm:px-6 max-w-5xl mx-auto animate-fadeIn relative w-full overflow-hidden"
       style={{ paddingBottom: 'calc(5rem + 32px + env(safe-area-inset-bottom, 0px))' }}
     >
       {/* Header Section */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="font-headline text-3xl font-extrabold text-[#1c1c17] tracking-tight mb-1 leading-[1.2]">
+          <h2 className="font-headline text-2xl sm:text-3xl font-extrabold text-[#1c1c17] tracking-tight mb-1 leading-[1.2]">
             Rekap Presensi &amp; Laporan
           </h2>
-          <p className="text-[#5E4B32] text-[15px] font-medium leading-relaxed">
+          <p className="text-[#5E4B32] text-xs sm:text-[15px] font-medium leading-relaxed">
             Tinjau aktivitas dan performa kerja Anda
           </p>
         </div>
@@ -43,7 +43,7 @@ export const RekapScreen: React.FC<RekapScreenProps> = ({
           type="button"
           onClick={onOpenPdfModal}
           aria-label="Unduh PDF Laporan"
-          className="self-start sm:self-auto px-4 py-2 bg-gradient-to-r from-[#735c00] to-[#d4af37] text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-150 flex items-center gap-1.5 shrink-0 cursor-pointer"
+          className="self-start sm:self-auto px-3.5 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-[#735c00] to-[#d4af37] text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-150 flex items-center gap-1.5 shrink-0 cursor-pointer"
         >
           <span className="material-symbols-outlined text-base">picture_as_pdf</span>
           <span>Unduh PDF</span>
@@ -51,13 +51,13 @@ export const RekapScreen: React.FC<RekapScreenProps> = ({
       </div>
 
       {/* Asymmetric Bento Grid / Tab Control */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         {/* Tabs Selection (Bento Style) */}
-        <div className="md:col-span-2 flex bg-[#f6f3ea] p-1.5 rounded-2xl border border-[#d0c5af]/25">
+        <div className="md:col-span-2 flex bg-[#f6f3ea] p-1 sm:p-1.5 rounded-2xl border border-[#d0c5af]/25">
           <button
             type="button"
             onClick={() => setActiveTab('presensi')}
-            className={`flex-1 py-3 px-6 rounded-xl text-sm transition-all duration-150 active:scale-[0.98] cursor-pointer ${
+            className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl text-xs sm:text-sm transition-all duration-150 active:scale-[0.98] cursor-pointer ${
               activeTab === 'presensi'
                 ? 'bg-white text-[#5C4300] shadow-sm font-bold'
                 : 'text-[#6B4F1D] font-semibold hover:bg-[#ebe8df]'
@@ -68,7 +68,7 @@ export const RekapScreen: React.FC<RekapScreenProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('laporan')}
-            className={`flex-1 py-3 px-6 rounded-xl text-sm transition-all duration-150 active:scale-[0.98] cursor-pointer ${
+            className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl text-xs sm:text-sm transition-all duration-150 active:scale-[0.98] cursor-pointer ${
               activeTab === 'laporan'
                 ? 'bg-white text-[#5C4300] shadow-sm font-bold'
                 : 'text-[#6B4F1D] font-semibold hover:bg-[#ebe8df]'
@@ -138,11 +138,11 @@ export const RekapScreen: React.FC<RekapScreenProps> = ({
                 <div
                   key={item.id}
                   onClick={() => onSelectRecord(item)}
-                  className="bg-white p-5 rounded-2xl flex items-center justify-between group hover:bg-[#fcf9f0] transition-all duration-150 active:scale-[0.98] shadow-[0_8px_24px_rgba(28,28,23,0.02)] border border-[#d0c5af]/15 cursor-pointer"
+                  className="bg-white p-3.5 sm:p-5 rounded-2xl flex items-center justify-between group hover:bg-[#fcf9f0] transition-all duration-150 active:scale-[0.98] shadow-sm border border-[#d0c5af]/15 cursor-pointer"
                 >
-                  <div className="flex items-center gap-5">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1 mr-2">
                     <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                      className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 ${
                         isHadir
                           ? 'bg-[#DCFCE7] text-[#15803D]'
                           : isDinas
@@ -153,7 +153,7 @@ export const RekapScreen: React.FC<RekapScreenProps> = ({
                       }`}
                     >
                       <span
-                        className="material-symbols-outlined text-[28px]"
+                        className="material-symbols-outlined text-2xl sm:text-[28px]"
                         style={{
                           fontVariationSettings: isHadir || isDinas ? "'FILL' 1" : "'FILL' 0",
                         }}
@@ -168,13 +168,13 @@ export const RekapScreen: React.FC<RekapScreenProps> = ({
                       </span>
                     </div>
 
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-base font-bold font-headline text-[#1c1c17]">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1 flex-wrap">
+                        <span className="text-xs sm:text-base font-bold font-headline text-[#1c1c17] truncate">
                           {item.formattedDate}
                         </span>
                         <span
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          className={`px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider shrink-0 ${
                             isHadir
                               ? 'bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]'
                               : isDinas
@@ -184,32 +184,32 @@ export const RekapScreen: React.FC<RekapScreenProps> = ({
                               : 'bg-[#FFE4E6] text-[#BE123C] border border-[#FECDD3]'
                           }`}
                         >
-                          {isDinas ? 'Perjalanan Dinas' : item.status}
+                          {isDinas ? 'Dinas' : item.status}
                         </span>
                       </div>
 
                       {item.checkInTime ? (
-                        <p className="text-xs text-[#5E4B32] font-medium flex items-center gap-1">
-                          <span className="material-symbols-outlined text-sm">
+                        <p className="text-[11px] sm:text-xs text-[#5E4B32] font-medium flex items-center gap-1 truncate">
+                          <span className="material-symbols-outlined text-xs sm:text-sm shrink-0">
                             schedule
                           </span>{' '}
-                          {item.checkInTime} - {item.checkOutTime || '17:00'}
+                          <span>{item.checkInTime} - {item.checkOutTime || '17:00'}</span>
                           {item.note && (
-                            <span className="text-[#5E4B32] truncate max-w-xs ml-1">
+                            <span className="text-[#5E4B32] truncate max-w-[120px] xs:max-w-xs ml-1">
                               • {item.note}
                             </span>
                           )}
                         </p>
                       ) : (
-                        <p className="text-xs text-[#5E4B32] font-medium">
+                        <p className="text-[11px] sm:text-xs text-[#5E4B32] font-medium truncate">
                           {item.note || 'Keterangan tercatat'}
                         </p>
                       )}
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    <span className="material-symbols-outlined text-[#d0c5af] group-hover:text-[#735c00] transition-colors">
+                  <div className="text-right shrink-0">
+                    <span className="material-symbols-outlined text-base sm:text-xl text-[#d0c5af] group-hover:text-[#735c00] transition-colors">
                       chevron_right
                     </span>
                   </div>

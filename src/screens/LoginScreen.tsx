@@ -237,33 +237,33 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   };
 
   return (
-    <div className="bg-[#fcf9f0] font-body text-[#1c1c17] min-h-screen flex flex-col relative overflow-hidden">
-      {/* Texture Layer */}
-      <div className="fixed inset-0 pointer-events-none grain-texture"></div>
+    <div className="bg-[#fcf9f0] font-body text-[#1c1c17] min-h-screen w-full max-w-full overflow-x-hidden flex flex-col relative">
+      {/* Texture & Ambient Glows (Clipped to prevent Android horizontal overflow) */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute inset-0 grain-texture"></div>
+        <div className="absolute top-[-10%] right-[-10%] w-[45%] h-[45%] bg-[#ffe088]/20 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[45%] h-[45%] bg-[#fdc39a]/20 rounded-full blur-[120px]"></div>
+      </div>
 
-      {/* Decorative Golden Ambient Glows */}
-      <div className="absolute top-[-10%] right-[-10%] w-[45%] h-[45%] bg-[#ffe088]/20 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] left-[-10%] w-[45%] h-[45%] bg-[#fdc39a]/20 rounded-full blur-[120px] pointer-events-none"></div>
-
-      <main className="flex-grow flex items-center justify-center p-4 sm:p-6 relative z-10">
-        <div className="w-full max-w-lg">
+      <main className="flex-grow flex items-center justify-center p-3 sm:p-6 relative z-10 w-full max-w-full">
+        <div className="w-full max-w-md mx-auto">
           {/* Official Village Header Banner */}
-          <div className="text-center mb-5">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-[1.75rem] bg-gradient-to-br from-[#735c00] to-[#d4af37] shadow-xl mb-3 transform rotate-1 transition-transform">
+          <div className="text-center mb-4 sm:mb-5">
+            <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl sm:rounded-[1.75rem] bg-gradient-to-br from-[#735c00] to-[#d4af37] shadow-xl mb-2 sm:mb-3 transform rotate-1 transition-transform">
               <span
-                className="material-symbols-outlined text-white text-3xl"
+                className="material-symbols-outlined text-white text-2xl sm:text-3xl"
                 style={{ fontVariationSettings: "'FILL' 1" }}
               >
                 holiday_village
               </span>
             </div>
 
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100/80 border border-amber-300/60 text-[#735c00] text-[11px] font-bold uppercase tracking-wider mb-2 shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-amber-100/80 border border-amber-300/60 text-[#735c00] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>Portal Resmi Balai Desa Terisolasi</span>
             </div>
 
-            <h1 className="font-headline text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1c1c17]">
+            <h1 className="font-headline text-xl sm:text-3xl font-extrabold tracking-tight text-[#1c1c17]">
               {targetVillage.namaDesa.toUpperCase()}
             </h1>
             <p className="font-label text-xs sm:text-sm tracking-wide text-[#805533] font-semibold mt-0.5">
@@ -274,36 +274,36 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </p>
           </div>
 
-          {/* Role Mode Tabs (Clean & Strict Separation) */}
-          <div className="bg-[#f6f3ea] p-1.5 rounded-2xl border border-[#d0c5af]/30 mb-4 flex shadow-inner">
+          {/* Role Mode Tabs (Clean & Strict Separation, Mobile-First) */}
+          <div className="bg-[#f6f3ea] p-1 rounded-xl sm:rounded-2xl border border-[#d0c5af]/30 mb-3.5 sm:mb-4 flex gap-1 shadow-inner w-full">
             <button
               type="button"
               onClick={() => handleModeSwitch('admin_desa')}
-              className={`flex-1 py-3 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              className={`flex-1 py-2.5 px-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer min-w-0 ${
                 loginMode === 'admin_desa'
                   ? 'bg-gradient-to-r from-[#735c00] to-[#8c7000] text-white shadow-md'
                   : 'text-[#805533] hover:text-[#735c00]'
               }`}
             >
-              <span className="material-symbols-outlined text-base">admin_panel_settings</span>
-              <span>Admin Balai {targetVillage.namaDesa.replace(/desa\s+/gi, '')}</span>
+              <span className="material-symbols-outlined text-sm sm:text-base shrink-0">admin_panel_settings</span>
+              <span className="truncate">Admin Balai {targetVillage.namaDesa.replace(/desa\s+/gi, '')}</span>
             </button>
             <button
               type="button"
               onClick={() => handleModeSwitch('pegawai')}
-              className={`flex-1 py-3 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              className={`flex-1 py-2.5 px-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer min-w-0 ${
                 loginMode === 'pegawai'
                   ? 'bg-white text-[#735c00] shadow-md border border-[#d0c5af]/25'
                   : 'text-[#805533] hover:text-[#735c00]'
               }`}
             >
-              <span className="material-symbols-outlined text-base">badge</span>
-              <span>Aparatur (Pegawai)</span>
+              <span className="material-symbols-outlined text-sm sm:text-base shrink-0">badge</span>
+              <span className="truncate">Aparatur (Pegawai)</span>
             </button>
           </div>
 
           {/* Main Login Card */}
-          <div className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-[0_20px_50px_rgba(28,28,23,0.06)] border border-[#d0c5af]/20">
+          <div className="bg-white rounded-3xl sm:rounded-[2rem] p-4 sm:p-7 shadow-[0_12px_40px_rgba(28,28,23,0.06)] border border-[#d0c5af]/20 w-full overflow-hidden">
             {/* Header info per mode */}
             {loginMode === 'admin_desa' ? (
               <div className="mb-5 space-y-1.5">
@@ -518,20 +518,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   <button
                     type="button"
                     onClick={handleQuickFillAdmin}
-                    className="w-full p-2.5 rounded-xl bg-[#fff9ea] hover:bg-[#fbf4de] border border-[#d4af37]/40 transition-all cursor-pointer flex items-center justify-between text-left active:scale-[0.99]"
+                    className="w-full p-2.5 rounded-xl bg-[#fff9ea] hover:bg-[#fbf4de] border border-[#d4af37]/40 transition-all cursor-pointer flex items-center justify-between text-left active:scale-[0.99] gap-2 min-w-0"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#735c00]"></span>
-                      <div>
-                        <p className="text-xs font-bold text-[#735c00]">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#735c00] shrink-0"></span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-[#735c00] truncate">
                           Admin Balai {targetVillage.namaDesa}
                         </p>
-                        <p className="text-[10px] text-[#805533] font-mono">
+                        <p className="text-[10px] text-[#805533] font-mono truncate">
                           Lisensi: {targetVillage.licenseKey} &bull; Pass: admin123
                         </p>
                       </div>
                     </div>
-                    <span className="text-[10px] font-bold text-[#735c00] bg-white px-2 py-1 rounded-lg border border-[#d4af37]/40 shadow-xs">
+                    <span className="text-[10px] font-bold text-[#735c00] bg-white px-2 py-1 rounded-lg border border-[#d4af37]/40 shadow-xs shrink-0 whitespace-nowrap">
                       Isi Otomatis
                     </span>
                   </button>
@@ -539,20 +539,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   <button
                     type="button"
                     onClick={handleQuickFillPegawai}
-                    className="w-full p-2.5 rounded-xl bg-[#f6f3ea] hover:bg-[#ebe8df] border border-[#d0c5af]/30 transition-all cursor-pointer flex items-center justify-between text-left active:scale-[0.99]"
+                    className="w-full p-2.5 rounded-xl bg-[#f6f3ea] hover:bg-[#ebe8df] border border-[#d0c5af]/30 transition-all cursor-pointer flex items-center justify-between text-left active:scale-[0.99] gap-2 min-w-0"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-                      <div>
-                        <p className="text-xs font-bold text-[#1c1c17]">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 shrink-0"></span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-[#1c1c17] truncate">
                           {villageStaff?.name || `Aparatur ${targetVillage.namaDesa}`}
                         </p>
-                        <p className="text-[10px] text-[#805533]">
+                        <p className="text-[10px] text-[#805533] truncate">
                           {villageStaff?.email || `pegawai@${targetVillage.namaDesa.toLowerCase().replace(/desa\s+/gi, '')}.desa.go.id`} &bull; Pass: {villageStaff?.password || 'password123'}
                         </p>
                       </div>
                     </div>
-                    <span className="text-[10px] font-bold text-[#735c00] bg-white px-2 py-1 rounded-lg border border-[#d0c5af]/25 shadow-xs">
+                    <span className="text-[10px] font-bold text-[#735c00] bg-white px-2 py-1 rounded-lg border border-[#d0c5af]/25 shadow-xs shrink-0 whitespace-nowrap">
                       Isi Otomatis
                     </span>
                   </button>
@@ -562,16 +562,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 <button
                   type="button"
                   onClick={handleTestCrossVillageRejection}
-                  className="w-full p-2 rounded-xl bg-red-50/70 hover:bg-red-100/70 border border-red-200/60 transition-all cursor-pointer flex items-center justify-between text-left active:scale-[0.99]"
+                  className="w-full p-2 rounded-xl bg-red-50/70 hover:bg-red-100/70 border border-red-200/60 transition-all cursor-pointer flex items-center justify-between text-left active:scale-[0.99] gap-2 min-w-0"
                   title="Klik untuk menguji bahwa lisensi desa lain akan ditolak"
                 >
-                  <div className="flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-sm text-red-600">shield</span>
-                    <span className="text-[11px] font-semibold text-red-800">
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <span className="material-symbols-outlined text-sm text-red-600 shrink-0">shield</span>
+                    <span className="text-[11px] font-semibold text-red-800 truncate">
                       Uji Keamanan: Coba Masuk dengan Lisensi Desa Lain
                     </span>
                   </div>
-                  <span className="text-[9px] font-extrabold uppercase tracking-wider text-red-700 bg-white px-1.5 py-0.5 rounded border border-red-200">
+                  <span className="text-[9px] font-extrabold uppercase tracking-wider text-red-700 bg-white px-1.5 py-0.5 rounded border border-red-200 shrink-0 whitespace-nowrap">
                     Cek Tolak
                   </span>
                 </button>

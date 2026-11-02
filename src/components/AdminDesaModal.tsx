@@ -250,26 +250,26 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4">
       <div className="fixed inset-0 bg-[#1c1c17]/60 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative bg-white w-full max-w-3xl max-h-[92vh] rounded-[2.5rem] p-6 sm:p-7 shadow-2xl z-10 border border-[#d0c5af]/30 flex flex-col animate-scaleUp">
+      <div className="relative bg-white w-full max-w-3xl max-h-[94vh] sm:max-h-[92vh] rounded-[1.75rem] sm:rounded-[2.5rem] p-4 sm:p-7 shadow-2xl z-10 border border-[#d0c5af]/30 flex flex-col animate-scaleUp overflow-hidden">
         {/* Modal Header */}
-        <div className="flex justify-between items-center pb-4 border-b border-[#d0c5af]/25">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#735c00] to-[#d4af37] text-white flex items-center justify-center shadow-md">
-              <span className="material-symbols-outlined text-2xl">holiday_village</span>
+        <div className="flex justify-between items-center pb-3 sm:pb-4 border-b border-[#d0c5af]/25">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 mr-2">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-[#735c00] to-[#d4af37] text-white flex items-center justify-center shadow-md shrink-0">
+              <span className="material-symbols-outlined text-xl sm:text-2xl">holiday_village</span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-headline font-black text-lg text-[#1c1c17]">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h3 className="font-headline font-black text-sm sm:text-lg text-[#1c1c17] truncate">
                   Pengaturan {currentVillageLicense?.namaDesa || 'Balai Desa'}
                 </h3>
-                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-amber-100 text-[#735c00] border border-amber-300">
-                  Admin Desa
+                <span className="px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] font-extrabold uppercase bg-amber-100 text-[#735c00] border border-amber-300 shrink-0">
+                  Admin
                 </span>
               </div>
-              <p className="text-xs text-[#805533]">
+              <p className="text-[11px] sm:text-xs text-[#805533] truncate">
                 Kec. {currentVillageLicense?.kecamatan}, Kab. {currentVillageLicense?.kabupaten} &bull; Lisensi Terkunci
               </p>
             </div>
@@ -277,28 +277,28 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
           <button
             onClick={onClose}
             aria-label="Tutup pengaturan"
-            className="p-2 rounded-full text-[#7f7663] hover:bg-[#f6f3ea] cursor-pointer"
+            className="p-1.5 sm:p-2 rounded-full text-[#7f7663] hover:bg-[#f6f3ea] cursor-pointer shrink-0"
           >
-            <span className="material-symbols-outlined text-2xl">close</span>
+            <span className="material-symbols-outlined text-xl sm:text-2xl">close</span>
           </button>
         </div>
 
-        {/* Tab Navigation (Exclusively for this village) */}
-        <div className="flex gap-1.5 p-1 bg-[#f6f3ea] rounded-2xl border border-[#d0c5af]/30 mt-3 flex-wrap">
+        {/* Tab Navigation (Exclusively for this village - Responsive grid) */}
+        <div className="grid grid-cols-3 gap-1 p-1 bg-[#f6f3ea] rounded-xl sm:rounded-2xl border border-[#d0c5af]/30 mt-3">
           <button
             type="button"
             onClick={() => {
               setActiveTab('profil_balai');
               setStatusMessage(null);
             }}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-1.5 sm:px-3 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 truncate ${
               activeTab === 'profil_balai'
                 ? 'bg-white text-[#735c00] shadow-sm'
                 : 'text-[#805533] hover:bg-[#ebe8df]'
             }`}
           >
-            <span className="material-symbols-outlined text-sm">location_on</span>
-            <span>1. Lokasi Balai &amp; Geofence GPS</span>
+            <span className="material-symbols-outlined text-xs sm:text-sm shrink-0">location_on</span>
+            <span className="truncate">1. Geofence</span>
           </button>
           <button
             type="button"
@@ -306,14 +306,14 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
               setActiveTab('aparatur');
               setStatusMessage(null);
             }}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-1.5 sm:px-3 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 truncate ${
               activeTab === 'aparatur'
                 ? 'bg-white text-[#735c00] shadow-sm'
                 : 'text-[#805533] hover:bg-[#ebe8df]'
             }`}
           >
-            <span className="material-symbols-outlined text-sm">badge</span>
-            <span>2. Akun &amp; Kata Sandi Aparatur ({currentVillageEmployees.length})</span>
+            <span className="material-symbols-outlined text-xs sm:text-sm shrink-0">badge</span>
+            <span className="truncate">2. Aparatur ({currentVillageEmployees.length})</span>
           </button>
           <button
             type="button"
@@ -321,14 +321,14 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
               setActiveTab('lisensi_desa');
               setStatusMessage(null);
             }}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-1.5 sm:px-3 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 truncate ${
               activeTab === 'lisensi_desa'
                 ? 'bg-white text-[#735c00] shadow-sm'
                 : 'text-[#805533] hover:bg-[#ebe8df]'
             }`}
           >
-            <span className="material-symbols-outlined text-sm">verified</span>
-            <span>3. Lisensi Resmi Desa</span>
+            <span className="material-symbols-outlined text-xs sm:text-sm shrink-0">verified</span>
+            <span className="truncate">3. Lisensi</span>
           </button>
         </div>
 

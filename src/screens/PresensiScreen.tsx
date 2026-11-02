@@ -101,7 +101,7 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
 
   return (
     <main
-      className="pt-24 px-4 sm:px-6 max-w-lg mx-auto min-h-screen flex flex-col gap-6 animate-fadeIn"
+      className="pt-20 sm:pt-24 px-3 sm:px-6 max-w-lg mx-auto min-h-screen flex flex-col gap-5 sm:gap-6 animate-fadeIn w-full overflow-hidden"
       style={{ paddingBottom: 'calc(5rem + 32px + env(safe-area-inset-bottom, 0px))' }}
     >
       {/* Welcome Section */}
@@ -109,27 +109,27 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
         <h2 className="font-headline font-extrabold text-2xl sm:text-3xl text-[#1c1c17] tracking-tight leading-[1.2]">
           Input Presensi Aparatur
         </h2>
-        <p className="text-[#5E4B32] font-medium text-sm leading-relaxed">
+        <p className="text-[#5E4B32] font-medium text-xs sm:text-sm leading-relaxed">
           Pilih status kehadiran atau tugas kedinasan Anda hari ini.
         </p>
       </section>
 
       {/* Attendance Status Toggles (4 Options) */}
-      <section className="grid grid-cols-1 gap-3">
+      <section className="grid grid-cols-1 gap-2.5 sm:gap-3">
         {/* 1. HADIR DI BALAI DESA */}
         <button
           type="button"
           onClick={() => setSelectedStatus('HADIR')}
           aria-label="Pilih Status Hadir"
-          className={`flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-150 active:scale-[0.98] cursor-pointer border ${
+          className={`flex items-center justify-between px-3.5 sm:px-5 py-3.5 sm:py-4 rounded-2xl transition-all duration-150 active:scale-[0.98] cursor-pointer border ${
             selectedStatus === 'HADIR'
               ? 'bg-[#DCFCE7] text-[#15803D] border-2 border-[#15803D] shadow-md shadow-[#15803D]/15'
               : 'bg-white border-[#d0c5af]/30 text-[#5E4B32] hover:bg-[#f6f3ea]'
           }`}
         >
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-3 min-w-0 flex-1 mr-2">
             <div
-              className={`p-2 rounded-xl ${
+              className={`p-2 rounded-xl shrink-0 ${
                 selectedStatus === 'HADIR' ? 'bg-[#15803D] text-white' : 'bg-[#DCFCE7] text-[#15803D]'
               }`}
             >
@@ -142,13 +142,13 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
                 check_circle
               </span>
             </div>
-            <div className="text-left">
-              <span className={`font-headline font-bold text-base tracking-wide uppercase block ${
+            <div className="text-left min-w-0 flex-1">
+              <span className={`font-headline font-bold text-sm sm:text-base tracking-wide uppercase block ${
                 selectedStatus === 'HADIR' ? 'text-[#15803D]' : 'text-[#1c1c17]'
               }`}>
                 Hadir
               </span>
-              <span className={`text-xs block font-medium ${
+              <span className={`text-[11px] sm:text-xs block font-medium leading-snug ${
                 selectedStatus === 'HADIR' ? 'text-[#15803D]/90' : 'text-[#5E4B32]'
               }`}>
                 Presensi langsung di Kantor Balai Desa (Geofence ≤50m)
@@ -170,15 +170,15 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
           type="button"
           onClick={() => setSelectedStatus('DINAS')}
           aria-label="Pilih Status Perjalanan Dinas"
-          className={`flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-150 active:scale-[0.98] cursor-pointer border ${
+          className={`flex items-center justify-between px-3.5 sm:px-5 py-3.5 sm:py-4 rounded-2xl transition-all duration-150 active:scale-[0.98] cursor-pointer border ${
             selectedStatus === 'DINAS'
               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/25 border-blue-700'
               : 'bg-white border-[#d0c5af]/30 text-[#5E4B32] hover:bg-blue-50/50'
           }`}
         >
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-3 min-w-0 flex-1 mr-2">
             <div
-              className={`p-2 rounded-xl ${
+              className={`p-2 rounded-xl shrink-0 ${
                 selectedStatus === 'DINAS' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-700'
               }`}
             >
@@ -191,13 +191,13 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
                 business_center
               </span>
             </div>
-            <div className="text-left">
-              <div className="flex items-center gap-2">
-                <span className="font-headline font-bold text-base tracking-wide uppercase">
+            <div className="text-left min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="font-headline font-bold text-sm sm:text-base tracking-wide uppercase">
                   Perjalanan Dinas
                 </span>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                  className={`px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
                     selectedStatus === 'DINAS'
                       ? 'bg-white/20 text-white'
                       : 'bg-blue-100 text-blue-800'
@@ -206,7 +206,7 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
                   Tugas Luar
                 </span>
               </div>
-              <span className={`text-xs block font-medium ${selectedStatus === 'DINAS' ? 'text-blue-100' : 'text-[#5E4B32]'}`}>
+              <span className={`text-[11px] sm:text-xs block font-medium leading-snug ${selectedStatus === 'DINAS' ? 'text-blue-100' : 'text-[#5E4B32]'}`}>
                 Bebas Geofence
               </span>
             </div>
@@ -226,27 +226,27 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
           type="button"
           onClick={() => setSelectedStatus('IZIN')}
           aria-label="Pilih Status Izin"
-          className={`flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-150 active:scale-[0.98] cursor-pointer border ${
+          className={`flex items-center justify-between px-3.5 sm:px-5 py-3.5 sm:py-4 rounded-2xl transition-all duration-150 active:scale-[0.98] cursor-pointer border ${
             selectedStatus === 'IZIN'
               ? 'bg-[#FEF3C7] text-[#B45309] border-2 border-[#B45309] shadow-md shadow-[#B45309]/15'
               : 'bg-white border-[#d0c5af]/30 text-[#5E4B32] hover:bg-[#f6f3ea]'
           }`}
         >
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-3 min-w-0 flex-1 mr-2">
             <div
-              className={`p-2 rounded-xl ${
+              className={`p-2 rounded-xl shrink-0 ${
                 selectedStatus === 'IZIN' ? 'bg-[#B45309] text-white' : 'bg-[#FEF3C7] text-[#B45309]'
               }`}
             >
               <span className="material-symbols-outlined text-2xl">description</span>
             </div>
-            <div className="text-left">
-              <span className={`font-headline font-bold text-base tracking-wide uppercase block ${
+            <div className="text-left min-w-0 flex-1">
+              <span className={`font-headline font-bold text-sm sm:text-base tracking-wide uppercase block ${
                 selectedStatus === 'IZIN' ? 'text-[#B45309]' : 'text-[#1c1c17]'
               }`}>
                 Izin
               </span>
-              <span className={`text-xs block font-medium ${
+              <span className={`text-[11px] sm:text-xs block font-medium leading-snug ${
                 selectedStatus === 'IZIN' ? 'text-[#B45309]/90' : 'text-[#5E4B32]'
               }`}>
                 Keperluan keluarga, cuti dinas, atau halangan pribadi
@@ -268,27 +268,27 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
           type="button"
           onClick={() => setSelectedStatus('SAKIT')}
           aria-label="Pilih Status Sakit"
-          className={`flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-150 active:scale-[0.98] cursor-pointer border ${
+          className={`flex items-center justify-between px-3.5 sm:px-5 py-3.5 sm:py-4 rounded-2xl transition-all duration-150 active:scale-[0.98] cursor-pointer border ${
             selectedStatus === 'SAKIT'
               ? 'bg-[#FFE4E6] text-[#BE123C] border-2 border-[#BE123C] shadow-md shadow-[#BE123C]/15'
               : 'bg-white border-[#d0c5af]/30 text-[#5E4B32] hover:bg-[#f6f3ea]'
           }`}
         >
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-3 min-w-0 flex-1 mr-2">
             <div
-              className={`p-2 rounded-xl ${
+              className={`p-2 rounded-xl shrink-0 ${
                 selectedStatus === 'SAKIT' ? 'bg-[#BE123C] text-white' : 'bg-[#FFE4E6] text-[#BE123C]'
               }`}
             >
               <span className="material-symbols-outlined text-2xl">medical_services</span>
             </div>
-            <div className="text-left">
-              <span className={`font-headline font-bold text-base tracking-wide uppercase block ${
+            <div className="text-left min-w-0 flex-1">
+              <span className={`font-headline font-bold text-sm sm:text-base tracking-wide uppercase block ${
                 selectedStatus === 'SAKIT' ? 'text-[#BE123C]' : 'text-[#1c1c17]'
               }`}>
                 Sakit
               </span>
-              <span className={`text-xs block font-medium ${
+              <span className={`text-[11px] sm:text-xs block font-medium leading-snug ${
                 selectedStatus === 'SAKIT' ? 'text-[#BE123C]/90' : 'text-[#5E4B32]'
               }`}>
                 Keterangan sakit / melampirkan surat dokter

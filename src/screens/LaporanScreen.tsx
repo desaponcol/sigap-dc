@@ -76,25 +76,25 @@ export const LaporanScreen: React.FC<LaporanScreenProps> = ({
 
   return (
     <main
-      className="pt-24 px-6 max-w-2xl mx-auto animate-fadeIn"
+      className="pt-20 sm:pt-24 px-3.5 sm:px-6 max-w-2xl mx-auto animate-fadeIn w-full overflow-hidden"
       style={{ paddingBottom: 'calc(5rem + 32px + env(safe-area-inset-bottom, 0px))' }}
     >
       {/* Editorial Header Section */}
-      <div className="mb-10 mt-2">
-        <p className="font-headline font-bold text-[#6B4F1D] text-xs tracking-[0.06em] uppercase mb-2">
+      <div className="mb-6 sm:mb-10 mt-1 sm:mt-2">
+        <p className="font-headline font-bold text-[#6B4F1D] text-[11px] sm:text-xs tracking-[0.06em] uppercase mb-1.5 sm:mb-2">
           LAPORAN INTERNAL
         </p>
-        <h2 className="font-headline font-extrabold text-4xl text-[#1c1c17] tracking-tight leading-[1.2]">
+        <h2 className="font-headline font-extrabold text-2xl sm:text-4xl text-[#1c1c17] tracking-tight leading-[1.2]">
           Laporan Kerja Harian
         </h2>
-        <p className="text-[#5E4B32] font-body mt-2 text-[15px] leading-relaxed">
+        <p className="text-[#5E4B32] font-body mt-1.5 sm:mt-2 text-xs sm:text-[15px] leading-relaxed">
           Catat kegiatan dan hasil kerja Anda hari ini.
         </p>
       </div>
 
       {/* Form Canvas */}
-      <div className="bg-white rounded-[2rem] p-8 shadow-[0_8px_24px_rgba(28,28,23,0.04)] border border-[#d0c5af]/15">
-        <form onSubmit={handleSubmit} className="space-y-7">
+      <div className="bg-white rounded-[1.75rem] sm:rounded-[2rem] p-4 sm:p-8 shadow-[0_8px_24px_rgba(28,28,23,0.04)] border border-[#d0c5af]/15">
+        <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-7">
           {/* Date Picker Field */}
           <div className="group">
             <label

@@ -444,35 +444,35 @@ export const PdfExportModal: React.FC<PdfExportModalProps> = ({
         </div>
       ) : (
         /* Printable Document Preview */
-        <div className="relative bg-white w-full max-w-4xl max-h-[92vh] rounded-[2rem] p-5 sm:p-7 shadow-2xl z-10 border border-[#d0c5af]/25 flex flex-col printable-paper">
+        <div className="relative bg-white w-full max-w-4xl max-h-[92vh] rounded-[1.75rem] sm:rounded-[2rem] p-3.5 sm:p-7 shadow-2xl z-10 border border-[#d0c5af]/25 flex flex-col printable-paper overflow-hidden">
           {/* Header Action Bar (Hidden during Print) */}
           <div className="flex flex-col gap-2 pb-3 border-b border-[#d0c5af]/25 no-print mb-3">
-            <div className="flex justify-between items-center gap-2">
-              <div>
-                <h3 className="font-headline font-bold text-lg text-[#1c1c17]">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 sm:gap-2">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-headline font-bold text-base sm:text-lg text-[#1c1c17] truncate">
                   Pratinjau Dokumen Cetak Presensi
                 </h3>
-                <p className="text-xs text-[#805533]">
+                <p className="text-[11px] sm:text-xs text-[#805533] truncate">
                   Periode Rekap: {selectedMonth} {selectedYear} &bull; {activeDesa.namaDesa}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap w-full sm:w-auto justify-end">
                 {/* 1. Tombol Cetak Langsung */}
                 <button
                   type="button"
                   onClick={handlePrint}
-                  className="px-4 py-2.5 bg-gradient-to-r from-[#735c00] to-[#d4af37] text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5 active:scale-95 hover:shadow-lg transition-all cursor-pointer"
+                  className="px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-[#735c00] to-[#d4af37] text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5 active:scale-95 hover:shadow-lg transition-all cursor-pointer shrink-0"
                   title="Cetak langsung menggunakan dialog print browser"
                 >
                   <span className="material-symbols-outlined text-base">print</span>
-                  <span>Cetak / Simpan PDF</span>
+                  <span>Cetak / PDF</span>
                 </button>
 
                 {/* 2. Tombol Unduh Dokumen (Bypass sandbox iframe jika print browser diblokir) */}
                 <button
                   type="button"
                   onClick={handleDownloadPrintableHtml}
-                  className="px-3.5 py-2.5 bg-[#f6f3ea] hover:bg-[#ebe8df] text-[#735c00] border border-[#d4af37]/40 text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+                  className="px-3 sm:px-3.5 py-2 sm:py-2.5 bg-[#f6f3ea] hover:bg-[#ebe8df] text-[#735c00] border border-[#d4af37]/40 text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer shrink-0"
                   title="Unduh file dokumen yang langsung membuka dialog cetak PDF saat dibuka"
                 >
                   <span className="material-symbols-outlined text-base">download</span>
@@ -485,10 +485,10 @@ export const PdfExportModal: React.FC<PdfExportModalProps> = ({
                     setShowPreview(false);
                     setPrintStatus(null);
                   }}
-                  className="p-2 rounded-full text-[#7f7663] hover:bg-[#f6f3ea] cursor-pointer"
+                  className="p-1.5 sm:p-2 rounded-full text-[#7f7663] hover:bg-[#f6f3ea] cursor-pointer shrink-0"
                   title="Tutup"
                 >
-                  <span className="material-symbols-outlined text-xl">close</span>
+                  <span className="material-symbols-outlined text-lg sm:text-xl">close</span>
                 </button>
               </div>
             </div>
@@ -588,8 +588,8 @@ export const PdfExportModal: React.FC<PdfExportModalProps> = ({
                 </span>
               </div>
 
-              <div className="border border-black/40 rounded-lg overflow-hidden">
-                <table className="w-full text-xs">
+              <div className="border border-black/40 rounded-lg overflow-x-auto w-full max-w-full">
+                <table className="w-full text-xs min-w-[500px]">
                   <thead className="bg-[#f6f3ea] text-black border-b border-black">
                     <tr>
                       <th className="py-1.5 px-2 text-center w-10 border-r border-black/30">No</th>

@@ -30,71 +30,72 @@ export const PWAInstallBanner: React.FC<PWAInstallBannerProps> = ({
   return (
     <>
       {/* Subtle PWA Install Banner */}
-      <div className="mx-4 mt-2 mb-3 bg-gradient-to-r from-[#5C4300] via-[#7A5B00] to-[#5C4300] text-white p-3.5 rounded-2xl shadow-lg border border-[#FFE9A8]/30 flex flex-col gap-2.5 transition-all duration-200">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="w-10 h-10 rounded-xl bg-[#1E1A14] flex items-center justify-center shrink-0 border border-[#FFE9A8]/40 shadow-inner">
-              <span className="material-symbols-outlined text-[#FFE082] text-xl">
+      <div className="mx-2.5 sm:mx-4 mt-2 mb-3 bg-gradient-to-r from-[#5C4300] via-[#7A5B00] to-[#5C4300] text-white p-3 sm:p-3.5 rounded-2xl shadow-lg border border-[#FFE9A8]/30 flex flex-col gap-2.5 transition-all duration-200 max-w-[calc(100vw-1.25rem)] overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
+          <div className="flex items-center gap-2.5 w-full sm:w-auto min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#1E1A14] flex items-center justify-center shrink-0 border border-[#FFE9A8]/40 shadow-inner">
+              <span className="material-symbols-outlined text-[#FFE082] text-lg sm:text-xl">
                 install_mobile
               </span>
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-xs font-bold tracking-wide uppercase text-[#FFE9A8]">
+                <span className="text-[11px] sm:text-xs font-bold tracking-wide uppercase text-[#FFE9A8] truncate">
                   Mode PWA Siap Pasang
                 </span>
-                <span className="text-[10px] bg-emerald-600 text-white px-1.5 py-0.5 rounded-full font-bold">
+                <span className="text-[9px] sm:text-[10px] bg-emerald-600 text-white px-1.5 py-0.5 rounded-full font-bold shrink-0">
                   Online / Offline
                 </span>
               </div>
-              <p className="text-xs text-white/90 truncate mt-0.5">
+              <p className="text-[11px] sm:text-xs text-white/90 truncate mt-0.5">
                 Jadikan aplikasi di layar HP {selectedTenant?.namaDesa || 'Desa'}.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            {isInstallable && (
-              <button
-                onClick={install}
-                className="bg-[#FFE9A8] text-[#5C4300] hover:bg-white text-xs font-bold px-3.5 py-2 rounded-xl shadow transition-all duration-150 active:scale-[0.98] flex items-center gap-1.5"
-              >
-                <span className="material-symbols-outlined text-sm">download</span>
-                <span>Pasang di HP</span>
-              </button>
-            )}
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+            <div className="flex items-center gap-2 flex-wrap">
+              {isInstallable && (
+                <button
+                  onClick={install}
+                  className="bg-[#FFE9A8] text-[#5C4300] hover:bg-white text-xs font-bold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl shadow transition-all duration-150 active:scale-[0.98] flex items-center gap-1.5 cursor-pointer shrink-0"
+                >
+                  <span className="material-symbols-outlined text-sm">download</span>
+                  <span>Pasang di HP</span>
+                </button>
+              )}
 
-            {isIOS && (
-              <button
-                onClick={() => setShowIOSGuide(true)}
-                className="bg-[#FFE9A8] text-[#5C4300] hover:bg-white text-xs font-bold px-3 py-2 rounded-xl shadow transition-all duration-150 active:scale-[0.98] flex items-center gap-1.5"
-              >
-                <span className="material-symbols-outlined text-sm">ios_share</span>
-                <span>Pasang di iPhone</span>
-              </button>
-            )}
+              {isIOS && (
+                <button
+                  onClick={() => setShowIOSGuide(true)}
+                  className="bg-[#FFE9A8] text-[#5C4300] hover:bg-white text-xs font-bold px-3 py-2 rounded-xl shadow transition-all duration-150 active:scale-[0.98] flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-sm">ios_share</span>
+                  <span>Pasang di iPhone</span>
+                </button>
+              )}
 
-            {onCopyVillageLink && (
-              <button
-                onClick={onCopyVillageLink}
-                title={`Salin Link Khusus ${selectedTenant?.namaDesa || 'Desa'}`}
-                className="bg-white/15 hover:bg-white/25 text-white text-xs font-semibold px-3 py-2 rounded-xl transition-all duration-150 active:scale-[0.98] flex items-center gap-1 border border-white/20"
-              >
-                <span className="material-symbols-outlined text-sm">share</span>
-                <span className="hidden sm:inline">Bagikan Link</span>
-              </button>
-            )}
+              {onCopyVillageLink && (
+                <button
+                  onClick={onCopyVillageLink}
+                  title={`Salin Link Khusus ${selectedTenant?.namaDesa || 'Desa'}`}
+                  className="bg-white/15 hover:bg-white/25 text-white text-xs font-semibold px-3 py-2 rounded-xl transition-all duration-150 active:scale-[0.98] flex items-center gap-1 border border-white/20"
+                >
+                  <span className="material-symbols-outlined text-sm">share</span>
+                  <span className="hidden sm:inline">Bagikan Link</span>
+                </button>
+              )}
+            </div>
 
             <button
               onClick={() => setIsDismissed(true)}
               aria-label="Tutup Banner PWA"
-              className="text-white/70 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+              className="text-white/70 hover:text-white p-1 rounded-lg transition-colors cursor-pointer shrink-0"
             >
               <span className="material-symbols-outlined text-base">close</span>
             </button>
           </div>
         </div>
-
       </div>
 
       {/* iOS Safari Guided Install Modal */}
