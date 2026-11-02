@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppScreen, UserProfile } from '../types/index.ts';
-
 import { TenantInfo, SAMPLE_TENANTS } from '../services/supabase.ts';
+import { usePWAInstall } from '../utils/usePWAInstall.ts';
 
 interface DrawerMenuProps {
   isOpen: boolean;
@@ -32,6 +32,8 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({
   onCopyVillageLink,
   onSelectTenant,
 }) => {
+  const { isInstallable, install } = usePWAInstall();
+
   if (!isOpen) return null;
 
   return (
@@ -179,20 +181,20 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({
               </div>
             )}
 
-            {/* Village Link & PWA Quick Share */}
+            {/* Village Link & PWA Quick Share (Single Centralized Share Button) */}
             {onCopyVillageLink && (
-              <div className="bg-[#f6f3ea] p-3 rounded-2xl border border-[#d0c5af]/30 mt-3 space-y-2">
+              <div className="bg-[#f6f3ea] p-3.5 rounded-2xl border border-[#d0c5af]/40 mt-3 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#735c00] flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">link</span>
-                    Tautan Resmi PWA
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#735c00] flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-sm">share</span>
+                    Tautan Resmi Desa
                   </span>
                   <span className="text-[9px] bg-[#5C4300] text-white px-2 py-0.5 rounded-full font-bold">
                     {selectedTenant?.namaDesa || 'Desa'}
                   </span>
                 </div>
-                <p className="text-[11px] text-[#5E4B32] leading-tight">
-                  Bagikan tautan khusus ini agar aparatur {selectedTenant?.namaDesa || 'desa'} langsung membuka balai desanya.
+                <p className="text-[11px] text-[#5E4B32] leading-relaxed">
+                  Bagikan tautan khusus ini agar aparatur langsung membuka portal Balai {selectedTenant?.namaDesa || 'Desa'}.
                 </p>
                 <button
                   type="button"
@@ -200,11 +202,25 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({
                     onCopyVillageLink();
                     onClose();
                   }}
-                  className="w-full py-2 px-3 bg-gradient-to-r from-[#5C4300] to-[#7A5B00] text-[#FFE9A8] hover:text-white rounded-xl text-xs font-bold shadow-xs transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full py-2.5 px-3 bg-gradient-to-r from-[#5C4300] to-[#7A5B00] text-white hover:brightness-110 rounded-xl text-xs font-bold shadow-xs transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-sm">share</span>
+                  <span className="material-symbols-outlined text-sm text-[#FFE9A8]">share</span>
                   <span>Salin Link WhatsApp Desa</span>
                 </button>
+
+                {isInstallable && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      install();
+                      onClose();
+                    }}
+                    className="w-full py-2 px-3 bg-white text-[#5C4300] hover:bg-[#fff9ea] border border-[#d4af37]/40 rounded-xl text-xs font-bold shadow-xs transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-sm">install_mobile</span>
+                    <span>Pasang di Layar HP (PWA)</span>
+                  </button>
+                )}
               </div>
             )}
           </div>

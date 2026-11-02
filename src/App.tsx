@@ -19,7 +19,6 @@ import { DrawerMenu } from './components/DrawerMenu.tsx';
 import { ProfileModal } from './components/ProfileModal.tsx';
 import { AttendanceDetailModal } from './components/AttendanceDetailModal.tsx';
 import { PdfExportModal } from './components/PdfExportModal.tsx';
-import { PWAInstallBanner } from './components/PWAInstallBanner.tsx';
 import { LoginScreen } from './screens/LoginScreen.tsx';
 import { DashboardScreen } from './screens/DashboardScreen.tsx';
 import { PresensiScreen } from './screens/PresensiScreen.tsx';
@@ -494,13 +493,6 @@ export default function App() {
         onOpenDrawer={() => setIsDrawerOpen(true)}
         onOpenProfile={() => setIsProfileOpen(true)}
         onOpenAdminModal={handleOpenAdminModal}
-      />
-
-      {/* PWA Install Banner & Village Link Share */}
-      <PWAInstallBanner
-        selectedTenant={selectedTenant}
-        onCopyVillageLink={() => handleCopyVillageLink()}
-        onSelectTenant={handleSelectTenant}
       />
 
       {/* Screen Views */}
