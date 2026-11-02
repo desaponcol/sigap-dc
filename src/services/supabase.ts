@@ -94,6 +94,7 @@ export interface TenantInfo {
   jamPulang?: string;
   toleransiMenit?: number;
   contactPhone?: string;
+  contactPerson?: string;
   adminEmail?: string;
   logoUrl?: string;
 }

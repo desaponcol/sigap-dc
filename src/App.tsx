@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   AppScreen,
   AttendanceRecord,
@@ -117,21 +117,6 @@ function getMatchingDemoUser(tenant: TenantInfo): UserProfile {
 }
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('login') === '1') return false;
-    return true; // Default logged in to show the primary app screens immediately
-  });
-
-  const [currentScreen, setCurrentScreen] = useState<AppScreen>(() => {
-    const params = new URLSearchParams(window.location.search);
-    const screenParam = params.get('screen') as AppScreen;
-    if (['dashboard', 'presensi', 'laporan', 'rekap', 'tentang', 'login'].includes(screenParam)) {
-      return screenParam;
-    }
-    return 'dashboard';
-  });
-
   const [selectedTenant, setSelectedTenant] = useState<TenantInfo>(() => {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -148,18 +133,54 @@ export default function App() {
 
   const [user, setUser] = useState<UserProfile>(() => {
     try {
-      const params = new URLSearchParams(window.location.search);
-      const desaParam = params.get('desa') || params.get('village');
-      const kodeParam = params.get('kode') || params.get('license');
-      const allSources = [...SAMPLE_TENANTS, ...getRegisteredDesaLicenses()];
-      const match = resolveMatchingTenant(allSources, desaParam, kodeParam);
-      if (match) {
-        return getMatchingDemoUser(match);
+      const saved = sessionStorage.getItem('sigap_auth_user');
+      if (saved) {
+        return JSON.parse(saved);
       }
     } catch {
-      // fallback
+      // ignore
     }
-    return getMatchingDemoUser(SAMPLE_TENANTS[0]);
+    const allSources = [...SAMPLE_TENANTS, ...getRegisteredDesaLicenses()];
+    const params = new URLSearchParams(window.location.search);
+    const desaParam = params.get('desa') || params.get('village');
+    const kodeParam = params.get('kode') || params.get('license');
+    const match = resolveMatchingTenant(allSources, desaParam, kodeParam) || SAMPLE_TENANTS[0];
+    return getMatchingDemoUser(match);
+  });
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('login') === '1') return false;
+
+      const saved = sessionStorage.getItem('sigap_auth_user');
+      if (!saved) return false;
+      const parsed: UserProfile = JSON.parse(saved);
+
+      // Verify that the saved session belongs to the URL target village (if provided)
+      const desaParam = params.get('desa') || params.get('village');
+      if (desaParam) {
+        const cleanDesa = desaParam.toLowerCase().replace(/desa\s+/gi, '').replace(/[^a-z0-9]/g, '');
+        const instansiClean = (parsed.instansi || '').toLowerCase().replace(/kantor balai desa\s+/gi, '').replace(/desa\s+/gi, '').replace(/[^a-z0-9]/g, '');
+        if (!instansiClean.includes(cleanDesa) && !cleanDesa.includes(instansiClean)) {
+          // Cross-village mismatch detected: clear session to enforce strict village gate
+          sessionStorage.removeItem('sigap_auth_user');
+          return false;
+        }
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  });
+
+  const [currentScreen, setCurrentScreen] = useState<AppScreen>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const screenParam = params.get('screen') as AppScreen;
+    if (['dashboard', 'presensi', 'laporan', 'rekap', 'tentang', 'login'].includes(screenParam)) {
+      return screenParam;
+    }
+    return 'dashboard';
   });
 
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(() => {
@@ -315,8 +336,14 @@ export default function App() {
     setIsAuthenticated(true);
     setCurrentScreen('dashboard');
 
+    try {
+      sessionStorage.setItem('sigap_auth_user', JSON.stringify(loggedInUser));
+    } catch {
+      // ignore
+    }
+
     // Find and synchronize matching tenant for the logged-in user
-    const registered = getRegisteredDesaLicenses();
+    const registered = [...SAMPLE_TENANTS, ...getRegisteredDesaLicenses()];
     const match = registered.find(
       (l) =>
         l.id === loggedInUser.tenantId ||
@@ -329,7 +356,7 @@ export default function App() {
         namaDesa: match.namaDesa,
         kecamatan: match.kecamatan,
         kabupaten: match.kabupaten,
-        provinsi: match.provinsi,
+        provinsi: match.provinsi || 'Jawa Timur',
         licenseKey: match.licenseKey,
         officeLat: match.officeLat,
         officeLng: match.officeLng,
@@ -342,21 +369,31 @@ export default function App() {
       });
     }
 
-    showToast(`Selamat datang kembali, ${loggedInUser.name}`);
+    showToast(`Selamat datang, ${loggedInUser.name}`);
   };
 
   const handleLogout = () => {
+    try {
+      sessionStorage.removeItem('sigap_auth_user');
+    } catch {
+      // ignore
+    }
     setIsAuthenticated(false);
     setCurrentScreen('login');
-    showToast('Anda telah keluar dari aplikasi SIGAP.');
+    showToast(`Anda telah keluar dari Portal Balai ${selectedTenant.namaDesa}.`);
   };
 
   const handlePresensiSuccess = async (newRecord: AttendanceRecord) => {
-    setAttendanceRecords((prev) => [newRecord, ...prev]);
+    const recordWithTenant: AttendanceRecord = {
+      ...newRecord,
+      tenantId: selectedTenant.id,
+      employeeId: user.id,
+    };
+    setAttendanceRecords((prev) => [recordWithTenant, ...prev]);
 
     // Push to Supabase if configured
     if (isSupabaseConfigured()) {
-      const saved = await insertAttendanceToSupabase(newRecord, selectedTenant.id, user.id);
+      const saved = await insertAttendanceToSupabase(recordWithTenant, selectedTenant.id, user.id);
       if (saved) {
         showToast(`Presensi ${newRecord.status} tersinkronisasi ke Supabase Cloud!`);
         return;
@@ -367,11 +404,16 @@ export default function App() {
   };
 
   const handleLaporanSuccess = async (newReport: WorkReport) => {
-    setWorkReports((prev) => [newReport, ...prev]);
+    const reportWithTenant: WorkReport = {
+      ...newReport,
+      tenantId: selectedTenant.id,
+      employeeId: user.id,
+    };
+    setWorkReports((prev) => [reportWithTenant, ...prev]);
 
     // Push to Supabase if configured
     if (isSupabaseConfigured()) {
-      const saved = await insertWorkReportToSupabase(newReport, selectedTenant.id, user.id);
+      const saved = await insertWorkReportToSupabase(reportWithTenant, selectedTenant.id, user.id);
       if (saved) {
         showToast('Laporan harian tersinkronisasi ke Supabase Cloud!');
         return;
@@ -402,10 +444,24 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Strict Multi-Tenant Data Isolation: Only show records belonging to selectedTenant
+  const villageAttendanceRecords = useMemo(() => {
+    return attendanceRecords.filter(
+      (r) => !r.tenantId || r.tenantId === selectedTenant.id
+    );
+  }, [attendanceRecords, selectedTenant.id]);
+
+  const villageWorkReports = useMemo(() => {
+    return workReports.filter(
+      (r) => !r.tenantId || r.tenantId === selectedTenant.id
+    );
+  }, [workReports, selectedTenant.id]);
+
   if ((!isAuthenticated || currentScreen === 'login') && currentScreen !== 'tentang') {
     return (
       <>
         <LoginScreen
+          targetVillage={selectedTenant}
           onLoginSuccess={handleLoginSuccess}
           currentUser={user}
           onNavigateTentang={() => navigateTo('tentang')}
@@ -451,8 +507,8 @@ export default function App() {
       {currentScreen === 'dashboard' && (
         <DashboardScreen
           user={user}
-          attendanceRecords={attendanceRecords}
-          workReports={workReports}
+          attendanceRecords={villageAttendanceRecords}
+          workReports={villageWorkReports}
           isInsideRadius={isInsideRadius}
           distanceMeters={distanceMeters}
           onNavigate={navigateTo}
@@ -482,8 +538,8 @@ export default function App() {
       {currentScreen === 'rekap' && (
         <RekapScreen
           user={user}
-          attendanceRecords={attendanceRecords}
-          workReports={workReports}
+          attendanceRecords={villageAttendanceRecords}
+          workReports={villageWorkReports}
           onSelectRecord={(rec) => setSelectedRecord(rec)}
           onOpenPdfModal={() => setIsPdfModalOpen(true)}
         />
@@ -534,8 +590,8 @@ export default function App() {
         isOpen={isPdfModalOpen}
         onClose={() => setIsPdfModalOpen(false)}
         user={user}
-        attendanceRecords={attendanceRecords}
-        workReports={workReports}
+        attendanceRecords={villageAttendanceRecords}
+        workReports={villageWorkReports}
       />
 
       {/* Admin Desa: Pengaturan Balai Desa & Aparatur Modal */}

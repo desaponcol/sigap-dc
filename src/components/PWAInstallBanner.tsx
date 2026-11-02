@@ -95,35 +95,6 @@ export const PWAInstallBanner: React.FC<PWAInstallBannerProps> = ({
           </div>
         </div>
 
-        {/* Quick Switcher for 8 Desa Poncol */}
-        {onSelectTenant && (
-          <div className="w-full pt-2 border-t border-white/15 flex items-center gap-1.5 overflow-x-auto pb-0.5 select-none">
-            <span className="text-[10px] uppercase font-bold text-[#FFE9A8] shrink-0 flex items-center gap-1">
-              <span className="material-symbols-outlined text-xs">location_city</span>
-              Simulasi 8 Desa:
-            </span>
-            {SAMPLE_TENANTS.slice(0, 8).map((tenant) => {
-              const isCurrent =
-                selectedTenant?.id === tenant.id || selectedTenant?.namaDesa === tenant.namaDesa;
-              const short = tenant.namaDesa.replace(/desa\s+/gi, '');
-              return (
-                <button
-                  key={tenant.id}
-                  type="button"
-                  onClick={() => onSelectTenant(tenant)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold shrink-0 transition-all duration-150 active:scale-[0.98] cursor-pointer flex items-center gap-1 ${
-                    isCurrent
-                      ? 'bg-[#FFE9A8] text-[#5C4300] shadow-sm ring-1 ring-white/50'
-                      : 'bg-white/15 hover:bg-white/25 text-white'
-                  }`}
-                >
-                  <span>{short}</span>
-                  {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>}
-                </button>
-              );
-            })}
-          </div>
-        )}
       </div>
 
       {/* iOS Safari Guided Install Modal */}

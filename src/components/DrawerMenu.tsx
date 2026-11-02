@@ -207,53 +207,6 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({
                 </button>
               </div>
             )}
-            {/* 8 Desa Poncol Cluster Simulator & Link Switcher */}
-            <div className="bg-[#f6f3ea] p-3 rounded-2xl border border-[#d0c5af]/30 mt-3 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#735c00] flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm">location_city</span>
-                  Simulasi 8 Desa Poncol
-                </span>
-                <span className="text-[9px] bg-amber-100 text-[#735c00] px-2 py-0.5 rounded-full font-bold">
-                  Magetan
-                </span>
-              </div>
-              <p className="text-[11px] text-[#5E4B32] leading-tight">
-                Pilih balai desa untuk menguji peralihan profil, titik GPS, dan tautan khusus aparatur:
-              </p>
-
-              <div className="grid grid-cols-2 gap-1.5 pt-1">
-                {SAMPLE_TENANTS.slice(0, 8).map((tenant) => {
-                  const isCurrent = selectedTenant?.id === tenant.id || selectedTenant?.namaDesa === tenant.namaDesa;
-                  const shortName = tenant.namaDesa.replace(/desa\s+/gi, '');
-                  const slug = shortName.toLowerCase();
-                  return (
-                    <button
-                      key={tenant.id}
-                      type="button"
-                      onClick={() => {
-                        if (onSelectTenant) {
-                          onSelectTenant(tenant);
-                        }
-                        onClose();
-                      }}
-                      className={`py-1.5 px-2 rounded-xl text-[11px] font-bold flex items-center justify-between transition-all duration-150 active:scale-[0.98] cursor-pointer ${
-                        isCurrent
-                          ? 'bg-[#5C4300] text-white shadow-xs'
-                          : 'bg-white text-[#5C4300] hover:bg-[#fff7d9] border border-[#d0c5af]/30'
-                      }`}
-                    >
-                      <span className="truncate">{shortName}</span>
-                      {isCurrent ? (
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
-                      ) : (
-                        <span className="text-[9px] opacity-60 font-mono">?desa={slug}</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </div>
 
           {/* Location Simulator Control */}
