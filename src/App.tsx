@@ -8,6 +8,7 @@ import {
 import {
   CURRENT_USER,
   getRegisteredDesaLicenses,
+  getRegisteredEmployees,
   INITIAL_ATTENDANCE_RECORDS,
   INITIAL_WORK_REPORTS,
 } from './data/mockData.ts';
@@ -37,6 +38,83 @@ import {
   fetchWorkReportsFromSupabase,
   isSupabaseConfigured,
 } from './services/supabase.ts';
+import { DesaLicense } from './types/index.ts';
+
+function resolveMatchingTenant(
+  allTenants: (TenantInfo | DesaLicense)[],
+  paramDesa?: string | null,
+  paramKode?: string | null
+): TenantInfo | null {
+  if (paramDesa) {
+    const clean = paramDesa.toLowerCase().replace(/desa\s+/gi, '').replace(/[^a-z0-9]/g, '');
+    const match = allTenants.find((t) => {
+      const tClean = t.namaDesa.toLowerCase().replace(/desa\s+/gi, '').replace(/[^a-z0-9]/g, '');
+      return tClean === clean || tClean.includes(clean) || clean.includes(tClean);
+    });
+    if (match) {
+      return {
+        id: match.id,
+        kodeDesa: match.kodeDesa,
+        namaDesa: match.namaDesa,
+        kecamatan: match.kecamatan,
+        kabupaten: match.kabupaten,
+        provinsi: match.provinsi || 'Jawa Timur',
+        licenseKey: match.licenseKey,
+        officeLat: match.officeLat,
+        officeLng: match.officeLng,
+        allowedRadiusMeters: match.allowedRadiusMeters,
+        jamMasuk: match.jamMasuk,
+        jamPulang: match.jamPulang,
+        toleransiMenit: match.toleransiMenit,
+        contactPhone: match.contactPhone,
+        adminEmail: match.adminEmail,
+      };
+    }
+  }
+  if (paramKode) {
+    const cleanKode = paramKode.trim().toUpperCase();
+    const match = allTenants.find((t) => (t.licenseKey || '').toUpperCase() === cleanKode);
+    if (match) {
+      return {
+        id: match.id,
+        kodeDesa: match.kodeDesa,
+        namaDesa: match.namaDesa,
+        kecamatan: match.kecamatan,
+        kabupaten: match.kabupaten,
+        provinsi: match.provinsi || 'Jawa Timur',
+        licenseKey: match.licenseKey,
+        officeLat: match.officeLat,
+        officeLng: match.officeLng,
+        allowedRadiusMeters: match.allowedRadiusMeters,
+        jamMasuk: match.jamMasuk,
+        jamPulang: match.jamPulang,
+        toleransiMenit: match.toleransiMenit,
+        contactPhone: match.contactPhone,
+        adminEmail: match.adminEmail,
+      };
+    }
+  }
+  return null;
+}
+
+function getMatchingDemoUser(tenant: TenantInfo): UserProfile {
+  const employees = getRegisteredEmployees(tenant.id);
+  const found = employees.find((e) => e.role === 'admin_desa') || employees[0];
+  if (found) {
+    return {
+      ...found,
+      tenantId: tenant.id,
+      instansi: `Kantor Balai ${tenant.namaDesa}`,
+      desaLicenseKey: tenant.licenseKey || found.desaLicenseKey,
+    };
+  }
+  return {
+    ...CURRENT_USER,
+    tenantId: tenant.id,
+    instansi: `Kantor Balai ${tenant.namaDesa}`,
+    desaLicenseKey: tenant.licenseKey || CURRENT_USER.desaLicenseKey,
+  };
+}
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -54,7 +132,36 @@ export default function App() {
     return 'dashboard';
   });
 
-  const [user, setUser] = useState<UserProfile>(CURRENT_USER);
+  const [selectedTenant, setSelectedTenant] = useState<TenantInfo>(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const desaParam = params.get('desa') || params.get('village');
+      const kodeParam = params.get('kode') || params.get('license');
+      const allSources = [...SAMPLE_TENANTS, ...getRegisteredDesaLicenses()];
+      const match = resolveMatchingTenant(allSources, desaParam, kodeParam);
+      if (match) return match;
+    } catch {
+      // fallback
+    }
+    return SAMPLE_TENANTS[0];
+  });
+
+  const [user, setUser] = useState<UserProfile>(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const desaParam = params.get('desa') || params.get('village');
+      const kodeParam = params.get('kode') || params.get('license');
+      const allSources = [...SAMPLE_TENANTS, ...getRegisteredDesaLicenses()];
+      const match = resolveMatchingTenant(allSources, desaParam, kodeParam);
+      if (match) {
+        return getMatchingDemoUser(match);
+      }
+    } catch {
+      // fallback
+    }
+    return getMatchingDemoUser(SAMPLE_TENANTS[0]);
+  });
+
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(() => {
     try {
       const saved = localStorage.getItem('sigap_attendance_records');
@@ -75,69 +182,6 @@ export default function App() {
     } catch {
       return INITIAL_WORK_REPORTS;
     }
-  });
-
-  const [selectedTenant, setSelectedTenant] = useState<TenantInfo>(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const desaParam = params.get('desa') || params.get('village');
-      const kodeParam = params.get('kode') || params.get('license');
-      const registered = getRegisteredDesaLicenses();
-
-      if (desaParam) {
-        const clean = desaParam.toLowerCase().replace(/desa\s+/gi, '').replace(/[^a-z0-9]/g, '');
-        const match = registered.find((l) =>
-          l.namaDesa.toLowerCase().replace(/desa\s+/gi, '').replace(/[^a-z0-9]/g, '') === clean ||
-          l.namaDesa.toLowerCase().includes(clean)
-        );
-        if (match) {
-          return {
-            id: match.id,
-            kodeDesa: match.kodeDesa,
-            namaDesa: match.namaDesa,
-            kecamatan: match.kecamatan,
-            kabupaten: match.kabupaten,
-            provinsi: match.provinsi,
-            licenseKey: match.licenseKey,
-            officeLat: match.officeLat,
-            officeLng: match.officeLng,
-            allowedRadiusMeters: match.allowedRadiusMeters,
-            jamMasuk: match.jamMasuk,
-            jamPulang: match.jamPulang,
-            toleransiMenit: match.toleransiMenit,
-            contactPhone: match.contactPhone,
-            adminEmail: match.adminEmail,
-          };
-        }
-      }
-
-      if (kodeParam) {
-        const cleanKode = kodeParam.trim().toUpperCase();
-        const match = registered.find((l) => l.licenseKey.toUpperCase() === cleanKode);
-        if (match) {
-          return {
-            id: match.id,
-            kodeDesa: match.kodeDesa,
-            namaDesa: match.namaDesa,
-            kecamatan: match.kecamatan,
-            kabupaten: match.kabupaten,
-            provinsi: match.provinsi,
-            licenseKey: match.licenseKey,
-            officeLat: match.officeLat,
-            officeLng: match.officeLng,
-            allowedRadiusMeters: match.allowedRadiusMeters,
-            jamMasuk: match.jamMasuk,
-            jamPulang: match.jamPulang,
-            toleransiMenit: match.toleransiMenit,
-            contactPhone: match.contactPhone,
-            adminEmail: match.adminEmail,
-          };
-        }
-      }
-    } catch {
-      // fallback
-    }
-    return SAMPLE_TENANTS[0];
   });
 
   const [isInsideRadius, setIsInsideRadius] = useState<boolean>(true);
@@ -178,21 +222,36 @@ export default function App() {
       if (isSupabaseConfigured()) {
         const liveTenants = await fetchLiveTenants();
         if (liveTenants.length > 0) {
-          const currentTenant = liveTenants[0];
-          setSelectedTenant(currentTenant);
-          setUser((prev) => ({
-            ...prev,
-            instansi: `Kantor Balai ${currentTenant.namaDesa}`,
-          }));
+          const params = new URLSearchParams(window.location.search);
+          const desaParam = params.get('desa') || params.get('village');
+          const kodeParam = params.get('kode') || params.get('license');
 
-          const records = await fetchAttendanceFromSupabase(currentTenant.id);
-          if (records && records.length > 0) {
-            setAttendanceRecords(records);
+          let targetTenant: TenantInfo | null = null;
+          // Priority 1: If URL specifies a village, match that in liveTenants!
+          if (desaParam || kodeParam) {
+            targetTenant = resolveMatchingTenant(liveTenants, desaParam, kodeParam);
           }
 
-          const reports = await fetchWorkReportsFromSupabase(currentTenant.id);
-          if (reports && reports.length > 0) {
-            setWorkReports(reports);
+          // Priority 2: If no URL param, keep current selectedTenant or liveTenants[0]
+          if (!targetTenant && !desaParam && !kodeParam) {
+            targetTenant = liveTenants.find((t) => t.id === selectedTenant.id) || liveTenants[0];
+          }
+
+          // Only update if targetTenant was resolved (prevent overwriting URL param with unrelated liveTenants[0])
+          if (targetTenant) {
+            setSelectedTenant(targetTenant);
+            const matchedUser = getMatchingDemoUser(targetTenant);
+            setUser(matchedUser);
+
+            const records = await fetchAttendanceFromSupabase(targetTenant.id);
+            if (records && records.length > 0) {
+              setAttendanceRecords(records);
+            }
+
+            const reports = await fetchWorkReportsFromSupabase(targetTenant.id);
+            if (reports && reports.length > 0) {
+              setWorkReports(reports);
+            }
           }
         }
       }
@@ -236,11 +295,19 @@ export default function App() {
 
   const handleSelectTenant = (tenant: TenantInfo) => {
     setSelectedTenant(tenant);
-    setUser((prev) => ({
-      ...prev,
-      instansi: `Kantor Balai ${tenant.namaDesa}`,
-    }));
-    showToast(`Beralih ke tenant: ${tenant.namaDesa} (${tenant.kecamatan})`);
+    const matchedUser = getMatchingDemoUser(tenant);
+    setUser(matchedUser);
+
+    try {
+      const cleanSlug = tenant.namaDesa.toLowerCase().replace(/desa\s+/gi, '').replace(/\s+/g, '');
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set('desa', cleanSlug);
+      window.history.replaceState({}, '', newUrl.toString());
+    } catch {
+      // ignore
+    }
+
+    showToast(`Beralih ke ${tenant.namaDesa} (${matchedUser.name})`);
   };
 
   const handleLoginSuccess = (loggedInUser: UserProfile) => {
