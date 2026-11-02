@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   getRegisteredDesaLicenses,
   getRegisteredEmployees,
-  verifyProductionLicense,
 } from '../data/mockData.ts';
-import { UserProfile, DesaLicense } from '../types/index.ts';
+import { UserProfile } from '../types/index.ts';
 import { TenantInfo } from '../services/supabase.ts';
 
 interface LoginScreenProps {
@@ -18,7 +17,6 @@ interface LoginScreenProps {
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   targetVillage,
   onLoginSuccess,
-  currentUser,
   onNavigateTentang,
   onOpenDeveloperPortal,
 }) => {
@@ -44,7 +42,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [iconVariant, setIconVariant] = useState<'fingerprint' | 'shield'>('shield');
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   // Synchronize defaults if target village changes
   useEffect(() => {
@@ -70,41 +68,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     setErrorMessage(null);
   };
 
-  // Quick fill helper for the target village
-  const handleQuickFillAdmin = () => {
-    setAdminLicenseKey(targetVillage.licenseKey || '');
-    setAdminEmail(
-      targetVillage.adminEmail || `admin@${targetVillage.namaDesa.toLowerCase().replace(/desa\s+/gi, '').replace(/\s+/g, '')}.desa.go.id`
-    );
-    setAdminPassword('admin123');
-    setErrorMessage(null);
-  };
-
-  const handleQuickFillPegawai = () => {
-    if (villageStaff) {
-      setPegawaiEmail(villageStaff.email);
-      setPegawaiPassword(villageStaff.password || 'password123');
-    } else {
-      setPegawaiEmail(`pegawai@${targetVillage.namaDesa.toLowerCase().replace(/desa\s+/gi, '').replace(/\s+/g, '')}.desa.go.id`);
-      setPegawaiPassword('desa123');
-    }
-    setErrorMessage(null);
-  };
-
-  // Quick fill test button to trigger a cross-village rejection test
-  const handleTestCrossVillageRejection = () => {
-    const isGonggang = targetVillage.namaDesa.toLowerCase().includes('gonggang');
-    const foreignLicense = isGonggang ? 'SIGAP-PCL3520-2025-8841' : 'SIGAP-GGG3520-2025-1102';
-    const foreignName = isGonggang ? 'Desa Poncol' : 'Desa Gonggang';
-    
-    setAdminLicenseKey(foreignLicense);
-    setAdminEmail(`admin@${isGonggang ? 'poncol' : 'gonggang'}.desa.go.id`);
-    setAdminPassword('admin123');
-    setErrorMessage(
-      `⚠️ Percobaan Uji Keamanan: Kode lisensi diisi dengan milik ${foreignName}. Silakan klik tombol "Masuk Sebagai Admin Desa" di bawah untuk menguji penolakan otomatis.`
-    );
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
@@ -128,7 +91,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         if (foreignLicense) {
           setIsLoading(false);
           setErrorMessage(
-            `⛔ AKSES DITOLAK: Kode lisensi "${adminLicenseKey}" terdaftar resmi untuk BALAI ${foreignLicense.namaDesa.toUpperCase()} (${foreignLicense.kabupaten})! Anda saat ini berada di portal khusus BALAI ${targetVillage.namaDesa.toUpperCase()}. Akses lintas desa diblokir untuk menjaga kerahasiaan data aparatur.`
+            `⛔ AKSES DITOLAK: Kode lisensi "${adminLicenseKey}" terdaftar resmi untuk BALAI ${foreignLicense.namaDesa.toUpperCase()} (${foreignLicense.kabupaten})! Anda saat ini berada di portal khusus BALAI ${targetVillage.namaDesa.toUpperCase()}. Akses lintas desa diblokir untuk menjaga integritas data aparatur.`
           );
           return;
         }
@@ -142,7 +105,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         if (!isMatchTarget) {
           setIsLoading(false);
           setErrorMessage(
-            `⛔ AKSES DITOLAK: Nomor lisensi "${adminLicenseKey}" tidak valid untuk Balai ${targetVillage.namaDesa}. Pastikan Anda memasukkan kode lisensi resmi yang diterbitkan oleh Arunika Kreatif Media.`
+            `⛔ AKSES DITOLAK: Nomor lisensi "${adminLicenseKey}" tidak terdaftar untuk Balai ${targetVillage.namaDesa}. Pastikan Anda memasukkan kode lisensi resmi yang diterbitkan untuk desa ini.`
           );
           return;
         }
@@ -200,7 +163,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       if (!foundPegawai) {
         setIsLoading(false);
         setErrorMessage(
-          `❌ Akun aparatur "${pegawaiEmail}" tidak ditemukan di database Balai ${targetVillage.namaDesa}. Pastikan NIP/Email telah didaftarkan oleh Administrator Desa.`
+          `❌ Akun aparatur "${pegawaiEmail}" tidak ditemukan di database Balai ${targetVillage.namaDesa}. Pastikan NIP atau Email telah didaftarkan oleh Administrator Desa.`
         );
         return;
       }
@@ -237,169 +200,168 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   };
 
   return (
-    <div className="bg-[#fcf9f0] font-body text-[#1c1c17] min-h-screen w-full max-w-full overflow-x-hidden flex flex-col relative">
-      {/* Texture & Ambient Glows (Clipped to prevent Android horizontal overflow) */}
+    <div className="bg-[#fcf9f0] font-body text-[#1c1c17] min-h-screen w-full max-w-full overflow-x-hidden flex flex-col justify-between relative selection:bg-amber-200">
+      {/* Texture & Ambient Glows */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute inset-0 grain-texture"></div>
+        <div className="absolute inset-0 grain-texture opacity-30"></div>
         <div className="absolute top-[-10%] right-[-10%] w-[45%] h-[45%] bg-[#ffe088]/20 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-[-10%] left-[-10%] w-[45%] h-[45%] bg-[#fdc39a]/20 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[45%] h-[45%] bg-[#fdc39a]/15 rounded-full blur-[120px]"></div>
       </div>
 
-      <main className="flex-grow flex items-center justify-center p-3 sm:p-6 relative z-10 w-full max-w-full">
+      {/* Main Section */}
+      <main className="flex-grow flex items-center justify-center p-3 sm:p-6 relative z-10 w-full max-w-full my-auto">
         <div className="w-full max-w-md mx-auto">
-          {/* Official Village Header Banner */}
-          <div className="text-center mb-4 sm:mb-5">
-            <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl sm:rounded-[1.75rem] bg-gradient-to-br from-[#735c00] to-[#d4af37] shadow-xl mb-2 sm:mb-3 transform rotate-1 transition-transform">
+          {/* Official Village Header */}
+          <div className="text-center mb-4 sm:mb-6">
+            {/* Government Emblem */}
+            <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-[#735c00] via-[#8c7000] to-[#b8860b] shadow-lg shadow-[#735c00]/25 mb-3 border border-amber-300/40">
               <span
                 className="material-symbols-outlined text-white text-2xl sm:text-3xl"
                 style={{ fontVariationSettings: "'FILL' 1" }}
               >
-                holiday_village
+                account_balance
               </span>
             </div>
 
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-amber-100/80 border border-amber-300/60 text-[#735c00] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
-              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Portal Resmi Balai Desa Terisolasi</span>
+            {/* Official Portal Pill */}
+            <div className="flex justify-center mb-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200/80 text-[#735c00] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Portal Resmi Pemerintah Desa</span>
+              </div>
             </div>
 
-            <h1 className="font-headline text-xl sm:text-3xl font-extrabold tracking-tight text-[#1c1c17]">
+            <h1 className="font-headline text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1c1c17]">
               {targetVillage.namaDesa.toUpperCase()}
             </h1>
-            <p className="font-label text-xs sm:text-sm tracking-wide text-[#805533] font-semibold mt-0.5">
+            <p className="font-label text-xs sm:text-sm tracking-wide text-[#735c00] font-semibold mt-0.5">
               Kecamatan {targetVillage.kecamatan || 'Poncol'} &bull; Kabupaten {targetVillage.kabupaten || 'Magetan'} &bull; Jawa Timur
             </p>
-            <p className="text-[11px] text-[#5E4B32] mt-1">
-              Sistem Presensi Geofencing &amp; Administrasi Aparatur Pemerintah Desa
+            <p className="text-[11px] text-[#7f7663] mt-1 max-w-xs mx-auto">
+              Sistem Informasi Geospasial &amp; Presensi Aparatur Pemerintah Desa
             </p>
           </div>
 
-          {/* Role Mode Tabs (Clean & Strict Separation, Mobile-First) */}
-          <div className="bg-[#f6f3ea] p-1 rounded-xl sm:rounded-2xl border border-[#d0c5af]/30 mb-3.5 sm:mb-4 flex gap-1 shadow-inner w-full">
+          {/* Role Mode Tabs (Clean & Professional) */}
+          <div className="bg-[#f0ece0] p-1 rounded-2xl border border-[#d0c5af]/40 mb-4 flex gap-1 shadow-inner w-full">
             <button
               type="button"
               onClick={() => handleModeSwitch('admin_desa')}
-              className={`flex-1 py-2.5 px-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer min-w-0 ${
+              className={`flex-1 py-2.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer min-w-0 ${
                 loginMode === 'admin_desa'
                   ? 'bg-gradient-to-r from-[#735c00] to-[#8c7000] text-white shadow-md'
-                  : 'text-[#805533] hover:text-[#735c00]'
+                  : 'text-[#6b583e] hover:text-[#735c00]'
               }`}
             >
-              <span className="material-symbols-outlined text-sm sm:text-base shrink-0">admin_panel_settings</span>
+              <span className="material-symbols-outlined text-base shrink-0">admin_panel_settings</span>
               <span className="truncate">Admin Balai {targetVillage.namaDesa.replace(/desa\s+/gi, '')}</span>
             </button>
             <button
               type="button"
               onClick={() => handleModeSwitch('pegawai')}
-              className={`flex-1 py-2.5 px-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer min-w-0 ${
+              className={`flex-1 py-2.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer min-w-0 ${
                 loginMode === 'pegawai'
-                  ? 'bg-white text-[#735c00] shadow-md border border-[#d0c5af]/25'
-                  : 'text-[#805533] hover:text-[#735c00]'
+                  ? 'bg-white text-[#735c00] shadow-md border border-[#d0c5af]/30'
+                  : 'text-[#6b583e] hover:text-[#735c00]'
               }`}
             >
-              <span className="material-symbols-outlined text-sm sm:text-base shrink-0">badge</span>
+              <span className="material-symbols-outlined text-base shrink-0">badge</span>
               <span className="truncate">Aparatur (Pegawai)</span>
             </button>
           </div>
 
           {/* Main Login Card */}
-          <div className="bg-white rounded-3xl sm:rounded-[2rem] p-4 sm:p-7 shadow-[0_12px_40px_rgba(28,28,23,0.06)] border border-[#d0c5af]/20 w-full overflow-hidden">
+          <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-[0_12px_40px_rgba(28,28,23,0.06)] border border-[#d0c5af]/30 w-full overflow-hidden">
             {/* Header info per mode */}
             {loginMode === 'admin_desa' ? (
-              <div className="mb-5 space-y-1.5">
+              <div className="mb-5 space-y-1">
                 <div className="flex items-center justify-between">
                   <h2 className="font-headline text-lg font-bold text-[#735c00]">
                     Masuk Administrator Desa
                   </h2>
-                  <span className="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-[#735c00] text-white tracking-wider shadow-sm">
-                    🔒 Lisensi Terkunci
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100/80 text-[#735c00] border border-amber-300/50">
+                    <span className="material-symbols-outlined text-xs">lock</span>
+                    Lisensi Resmi
                   </span>
                 </div>
-                <p className="text-[#4d4635] text-xs leading-relaxed">
-                  Akses khusus Kepala Desa &amp; Sekdes <strong>{targetVillage.namaDesa}</strong>. Wajib memasukkan <strong>Nomor Lisensi Unik</strong> resmi balai desa Anda.
+                <p className="text-[#6b583e] text-xs leading-relaxed">
+                  Akses khusus Kepala Desa, Sekretaris Desa, dan Operator {targetVillage.namaDesa}.
                 </p>
               </div>
             ) : (
-              <div className="mb-5 space-y-1.5">
+              <div className="mb-5 space-y-1">
                 <div className="flex items-center justify-between">
                   <h2 className="font-headline text-lg font-bold text-[#1c1c17]">
                     Masuk Aparatur Balai Desa
                   </h2>
-                  <span className="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-emerald-100 text-emerald-800 tracking-wider">
-                    Presensi &amp; Kinerja
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-100/80 text-emerald-800 border border-emerald-300/50">
+                    <span className="material-symbols-outlined text-xs">person_check</span>
+                    Presensi GPS
                   </span>
                 </div>
-                <p className="text-[#4d4635] text-xs leading-relaxed">
-                  Masukkan email atau NIP beserta kata sandi yang telah didaftarkan oleh <strong>Admin Balai {targetVillage.namaDesa}</strong>.
+                <p className="text-[#6b583e] text-xs leading-relaxed">
+                  Masukkan NIP / Email beserta kata sandi yang telah didaftarkan oleh Balai {targetVillage.namaDesa}.
                 </p>
               </div>
             )}
 
             {/* Error / Alert Message Box */}
             {errorMessage && (
-              <div
-                className={`mb-5 p-3.5 rounded-xl border text-xs flex items-start gap-2.5 animate-fadeIn leading-relaxed ${
-                  errorMessage.includes('⚠️')
-                    ? 'bg-amber-50 border-amber-300 text-amber-900'
-                    : 'bg-red-50 border-red-200 text-red-900 font-medium'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg flex-shrink-0 mt-0.5">
-                  {errorMessage.includes('⚠️') ? 'info' : 'shield_lock'}
+              <div className="mb-4 p-3.5 rounded-xl border border-red-200 bg-red-50 text-red-900 text-xs flex items-start gap-2.5 animate-fadeIn leading-relaxed">
+                <span className="material-symbols-outlined text-lg flex-shrink-0 mt-0.5 text-red-700">
+                  shield_lock
                 </span>
-                <span>{errorMessage}</span>
+                <span className="font-medium">{errorMessage}</span>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Admin Mode: License Key Field */}
               {loginMode === 'admin_desa' && (
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <label
-                    className="block font-label text-xs font-bold uppercase tracking-[0.06em] text-[#6B4F1D] ml-1 flex items-center justify-between"
+                    className="block font-label text-xs font-bold uppercase tracking-wider text-[#735c00] ml-1"
                     htmlFor="adminLicense"
                   >
-                    <span>Kode Lisensi Resmi Balai {targetVillage.namaDesa}</span>
-                    <span className="text-[10px] text-emerald-700 font-semibold lowercase">
-                      wajib dicocokkan
-                    </span>
+                    Nomor Lisensi Balai Desa
                   </label>
                   <div className="relative">
                     <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#735c00] text-lg">
                       vpn_key
                     </span>
                     <input
-                      className="w-full pl-12 pr-4 py-3 bg-[#fff8e7] border-2 border-[#d4af37]/60 rounded-xl text-[#1c1c17] placeholder-[#8A7A66] focus:border-[#B8860B] focus:ring-2 focus:ring-[#B8860B]/30 focus:outline-none transition-all text-xs font-mono font-bold uppercase"
+                      className="w-full pl-12 pr-4 py-3 bg-[#fffdf9] border-2 border-[#d4af37]/60 rounded-xl text-[#1c1c17] placeholder-[#a69880] focus:border-[#735c00] focus:ring-2 focus:ring-[#735c00]/20 focus:outline-none transition-all text-xs font-mono font-bold uppercase tracking-wider"
                       id="adminLicense"
                       name="adminLicense"
                       value={adminLicenseKey}
                       onChange={(e) => setAdminLicenseKey(e.target.value)}
-                      placeholder={`Contoh: ${targetVillage.licenseKey || 'SIGAP-XXX...'}`}
+                      placeholder="Contoh: SIGAP-PCL3520-2025-XXXX"
                       required
                     />
                   </div>
-                  <p className="text-[11px] text-[#5E4B32] px-1 font-medium">
-                    Lisensi desa Anda: <code className="font-bold text-[#735c00]">{targetVillage.licenseKey}</code>
+                  <p className="text-[11px] text-[#7f7663] px-1 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-xs text-emerald-600">verified</span>
+                    <span>Lisensi terenkripsi per-wilayah hukum {targetVillage.namaDesa}.</span>
                   </p>
                 </div>
               )}
 
-              {/* Email / Username Field */}
-              <div className="space-y-1">
+              {/* Email / NIP Field */}
+              <div className="space-y-1.5">
                 <label
-                  className="block font-label text-xs font-bold uppercase tracking-[0.06em] text-[#6B4F1D] ml-1"
+                  className="block font-label text-xs font-bold uppercase tracking-wider text-[#735c00] ml-1"
                   htmlFor="loginEmail"
                 >
                   {loginMode === 'pegawai'
-                    ? `Email / NIP Aparatur ${targetVillage.namaDesa}`
-                    : `Email Administrator ${targetVillage.namaDesa}`}
+                    ? 'Email / NIP Aparatur Desa'
+                    : 'Email Administrator Desa'}
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#7f7663] text-lg">
                     {loginMode === 'pegawai' ? 'badge' : 'alternate_email'}
                   </span>
                   <input
-                    className="w-full pl-12 pr-4 py-3 bg-[#f6f3ea] border border-[#E5D9C3] rounded-xl text-[#1c1c17] placeholder-[#8A7A66] focus:ring-2 focus:ring-[#B8860B]/30 focus:border-[#B8860B] focus:outline-none transition-all text-xs"
+                    className="w-full pl-12 pr-4 py-3 bg-[#fbf9f4] border border-[#d0c5af]/50 rounded-xl text-[#1c1c17] placeholder-[#a69880] focus:ring-2 focus:ring-[#735c00]/20 focus:border-[#735c00] focus:outline-none transition-all text-xs"
                     id="loginEmail"
                     name="loginEmail"
                     value={loginMode === 'pegawai' ? pegawaiEmail : adminEmail}
@@ -410,7 +372,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     }
                     placeholder={
                       loginMode === 'pegawai'
-                        ? 'nama@desa.go.id atau NIP'
+                        ? 'nama@desa.go.id atau NIP 18 digit'
                         : `admin@${targetVillage.namaDesa.toLowerCase().replace(/desa\s+/gi, '')}.desa.go.id`
                     }
                     required
@@ -419,34 +381,28 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               </div>
 
               {/* Password Field */}
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <div className="flex justify-between items-center px-1">
                   <label
-                    className="font-label text-xs font-bold uppercase tracking-[0.06em] text-[#6B4F1D]"
+                    className="font-label text-xs font-bold uppercase tracking-wider text-[#735c00]"
                     htmlFor="loginPassword"
                   >
-                    Kata Sandi {loginMode === 'pegawai' ? '(Diberikan Admin Desa)' : ''}
+                    Kata Sandi
                   </label>
-                  {loginMode === 'pegawai' && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        alert(
-                          `Silakan hubungi Administrator Balai ${targetVillage.namaDesa} (Kepala Desa / Sekdes) untuk meminta atau mereset kata sandi login Anda.`
-                        )
-                      }
-                      className="text-[10px] font-bold uppercase tracking-widest text-[#6B4F1D] hover:text-[#5C4300] transition-colors cursor-pointer"
-                    >
-                      Lupa Password?
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowHelpModal(true)}
+                    className="text-[11px] font-semibold text-[#735c00] hover:text-[#524100] transition-colors cursor-pointer hover:underline"
+                  >
+                    Bantuan Akun?
+                  </button>
                 </div>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#7f7663] text-lg">
                     lock
                   </span>
                   <input
-                    className="w-full pl-12 pr-11 py-3 bg-[#f6f3ea] border border-[#E5D9C3] rounded-xl text-[#1c1c17] placeholder-[#8A7A66] focus:ring-2 focus:ring-[#B8860B]/30 focus:border-[#B8860B] focus:outline-none transition-all text-xs"
+                    className="w-full pl-12 pr-11 py-3 bg-[#fbf9f4] border border-[#d0c5af]/50 rounded-xl text-[#1c1c17] placeholder-[#a69880] focus:ring-2 focus:ring-[#735c00]/20 focus:border-[#735c00] focus:outline-none transition-all text-xs"
                     id="loginPassword"
                     name="loginPassword"
                     value={loginMode === 'pegawai' ? pegawaiPassword : adminPassword}
@@ -455,7 +411,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                         ? setPegawaiPassword(e.target.value)
                         : setAdminPassword(e.target.value)
                     }
-                    placeholder="••••••••"
+                    placeholder="Masukkan kata sandi"
                     type={showPassword ? 'text' : 'password'}
                     required
                   />
@@ -475,11 +431,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               {/* Submit Button */}
               <div className="pt-2">
                 <button
-                  className={`w-full h-12 text-white font-headline font-bold rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 group cursor-pointer ${
-                    loginMode === 'admin_desa'
-                      ? 'bg-gradient-to-r from-[#735c00] to-[#8c7000] hover:from-[#5e4b00] hover:to-[#735c00] shadow-[#735c00]/25'
-                      : 'bg-gradient-to-r from-[#735c00] to-[#d4af37] shadow-[#735c00]/20'
-                  }`}
+                  className="w-full h-12 text-white font-headline font-bold rounded-xl shadow-md hover:shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2 group cursor-pointer bg-gradient-to-r from-[#735c00] via-[#856b00] to-[#997b00]"
                   type="submit"
                   disabled={isLoading}
                 >
@@ -490,7 +442,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       <span>
                         {loginMode === 'admin_desa'
                           ? `Masuk Sebagai Admin ${targetVillage.namaDesa.replace(/desa\s+/gi, '')}`
-                          : `Masuk Sebagai Aparatur ${targetVillage.namaDesa.replace(/desa\s+/gi, '')}`}
+                          : `Masuk Sebagai Aparatur Desa`}
                       </span>
                       <span className="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform">
                         arrow_forward
@@ -501,148 +453,76 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               </div>
             </form>
 
-            {/* Quick Testing Helper: Tailored specifically to targetVillage */}
-            <div className="mt-6 pt-4 border-t border-[#d0c5af]/25">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#805533] flex items-center gap-1">
-                  <span className="material-symbols-outlined text-xs text-[#735c00]">vpn_key</span>
-                  <span>Bantuan Kredensial Uji Coba:</span>
-                </span>
-                <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  {targetVillage.namaDesa}
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                {loginMode === 'admin_desa' ? (
-                  <button
-                    type="button"
-                    onClick={handleQuickFillAdmin}
-                    className="w-full p-2.5 rounded-xl bg-[#fff9ea] hover:bg-[#fbf4de] border border-[#d4af37]/40 transition-all cursor-pointer flex items-center justify-between text-left active:scale-[0.99] gap-2 min-w-0"
-                  >
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#735c00] shrink-0"></span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-[#735c00] truncate">
-                          Admin Balai {targetVillage.namaDesa}
-                        </p>
-                        <p className="text-[10px] text-[#805533] font-mono truncate">
-                          Lisensi: {targetVillage.licenseKey} &bull; Pass: admin123
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-bold text-[#735c00] bg-white px-2 py-1 rounded-lg border border-[#d4af37]/40 shadow-xs shrink-0 whitespace-nowrap">
-                      Isi Otomatis
-                    </span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleQuickFillPegawai}
-                    className="w-full p-2.5 rounded-xl bg-[#f6f3ea] hover:bg-[#ebe8df] border border-[#d0c5af]/30 transition-all cursor-pointer flex items-center justify-between text-left active:scale-[0.99] gap-2 min-w-0"
-                  >
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 shrink-0"></span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-[#1c1c17] truncate">
-                          {villageStaff?.name || `Aparatur ${targetVillage.namaDesa}`}
-                        </p>
-                        <p className="text-[10px] text-[#805533] truncate">
-                          {villageStaff?.email || `pegawai@${targetVillage.namaDesa.toLowerCase().replace(/desa\s+/gi, '')}.desa.go.id`} &bull; Pass: {villageStaff?.password || 'password123'}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-bold text-[#735c00] bg-white px-2 py-1 rounded-lg border border-[#d0c5af]/25 shadow-xs shrink-0 whitespace-nowrap">
-                      Isi Otomatis
-                    </span>
-                  </button>
-                )}
-
-                {/* Security Verification Demonstration Button */}
-                <button
-                  type="button"
-                  onClick={handleTestCrossVillageRejection}
-                  className="w-full p-2 rounded-xl bg-red-50/70 hover:bg-red-100/70 border border-red-200/60 transition-all cursor-pointer flex items-center justify-between text-left active:scale-[0.99] gap-2 min-w-0"
-                  title="Klik untuk menguji bahwa lisensi desa lain akan ditolak"
-                >
-                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                    <span className="material-symbols-outlined text-sm text-red-600 shrink-0">shield</span>
-                    <span className="text-[11px] font-semibold text-red-800 truncate">
-                      Uji Keamanan: Coba Masuk dengan Lisensi Desa Lain
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-extrabold uppercase tracking-wider text-red-700 bg-white px-1.5 py-0.5 rounded border border-red-200 shrink-0 whitespace-nowrap">
-                    Cek Tolak
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            {/* Official Licensing Support info */}
-            <div className="mt-5 pt-3 border-t border-[#d0c5af]/20 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-[#4d4635]">
-              <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-sm text-emerald-600">verified</span>
-                <span>Penerbitan Lisensi: <strong>Arunika Kreatif Media</strong></span>
-              </div>
-              <a
-                href="https://wa.me/6285150617732?text=Halo%20Arunika%20Kreatif%20Media,%20saya%20ingin%20berkonsultasi%20mengenai%20Lisensi%20SIGAP%20Desa"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1 hover:underline"
-              >
-                <span>WhatsApp: 085150617732</span>
-              </a>
+            {/* Official Security Seal Row */}
+            <div className="mt-5 pt-4 border-t border-[#d0c5af]/25 flex items-center justify-center gap-2 text-[11px] text-[#7f7663]">
+              <span className="material-symbols-outlined text-sm text-emerald-600">verified_user</span>
+              <span>Koneksi Aman Terisolasi &bull; Geofencing Presisi Balai Desa</span>
             </div>
           </div>
         </div>
       </main>
 
-      {/* Global Footer with Protected Developer Portal Button */}
-      <footer className="p-6 text-center relative z-10 space-y-3">
-        <div className="flex flex-wrap justify-center gap-3">
+      {/* Official Government Footer */}
+      <footer className="py-4 px-4 text-center relative z-10 space-y-2 border-t border-[#d0c5af]/20 bg-[#fcf9f0]/80 backdrop-blur-sm">
+        <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-4">
           {onNavigateTentang && (
             <button
               type="button"
               onClick={onNavigateTentang}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/80 hover:bg-white text-xs font-bold text-[#735c00] border border-[#d0c5af]/40 shadow-xs hover:shadow-md transition-all active:scale-95 group cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#735c00] hover:text-[#524100] hover:underline cursor-pointer transition-colors"
             >
-              <img
-                src="https://res.cloudinary.com/maswardi/image/upload/v1792760931/akm1_u3kzra.png"
-                alt="Arunika Kreatif Media Logo"
-                className="w-5 h-5 object-contain"
-              />
-              <span>Tentang Aplikasi SIGAP &amp; Profil Pengembang</span>
-              <span className="material-symbols-outlined text-sm group-hover:translate-x-0.5 transition-transform">
-                arrow_forward
-              </span>
+              <span className="material-symbols-outlined text-sm">info</span>
+              <span>Tentang Sistem SIGAP</span>
             </button>
           )}
 
-          {/* Protected Super Admin / Developer Portal Button */}
           {onOpenDeveloperPortal && (
-            <button
-              type="button"
-              onClick={onOpenDeveloperPortal}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#1c1c17] hover:bg-[#333129] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer"
-              title="Khusus Pengembang Arunika Kreatif Media (Memerlukan PIN Pengembang)"
-            >
-              <span className="material-symbols-outlined text-sm text-amber-300">vpn_key</span>
-              <span>Portal Pengembang (Arunika Kreatif Media)</span>
-            </button>
+            <>
+              <span className="text-[#d0c5af] hidden sm:inline">&bull;</span>
+              <button
+                type="button"
+                onClick={onOpenDeveloperPortal}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-[#7f7663] hover:text-[#1c1c17] hover:underline cursor-pointer transition-colors"
+              >
+                <span className="material-symbols-outlined text-sm">lock</span>
+                <span>Pusat Administrasi Lisensi</span>
+              </button>
+            </>
           )}
         </div>
 
-        <div className="flex items-center justify-center gap-4">
-          <div className="h-px w-8 bg-[#d0c5af]/40"></div>
-          <p className="font-label text-[10px] uppercase tracking-widest text-[#7f7663]">
-            Isolasi Data Multi-Tenant &bull; SIGAP Desa Enterprise
-          </p>
-          <div className="h-px w-8 bg-[#d0c5af]/40"></div>
-        </div>
-        <p className="text-[10px] text-[#4d4635]/70 font-medium">
-          © {new Date().getFullYear()} ARUNIKA KREATIF MEDIA &bull; Lisensi Eksklusif Desa Mandiri. Kontak Resmi WA: 085150617732 | Email: arunikakreatifm@gmail.com
+        <p className="text-[11px] text-[#7f7663]">
+          &copy; {new Date().getFullYear()} Pemerintah Kabupaten {targetVillage.kabupaten || 'Magetan'} &bull; SIGAP Desa v2.5 Enterprise
         </p>
       </footer>
+
+      {/* Account Help Modal */}
+      {showHelpModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-[#d0c5af]/40">
+            <div className="flex items-center gap-2 text-[#735c00] font-headline font-bold text-base mb-2">
+              <span className="material-symbols-outlined">help</span>
+              <span>Bantuan Akun &amp; Kredensial</span>
+            </div>
+            <p className="text-xs text-[#4d4635] leading-relaxed mb-4">
+              Untuk aparatur yang lupa kata sandi atau membutuhkan aktivasi akun, silakan menghubungi <strong>Sekretaris Desa atau Operator Balai {targetVillage.namaDesa}</strong>.
+            </p>
+            <div className="bg-[#fcf9f0] p-3 rounded-xl border border-[#d0c5af]/30 text-xs space-y-1 mb-4 text-[#4d4635]">
+              <p><strong>Balai:</strong> {targetVillage.namaDesa}</p>
+              <p><strong>Kecamatan:</strong> {targetVillage.kecamatan}</p>
+              <p><strong>Kabupaten:</strong> {targetVillage.kabupaten}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowHelpModal(false)}
+              className="w-full py-2.5 rounded-xl bg-[#735c00] text-white font-bold text-xs hover:bg-[#5e4b00] transition-colors cursor-pointer"
+            >
+              Mengerti &amp; Tutup
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
