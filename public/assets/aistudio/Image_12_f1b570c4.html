@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SIGAP - Input Presensi</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-fixed": "#301400",
+              "on-secondary": "#ffffff",
+              "on-error-container": "#93000a",
+              "surface-container-low": "#f6f3ea",
+              "primary": "#735c00",
+              "error": "#ba1a1a",
+              "outline": "#7f7663",
+              "on-tertiary-container": "#454545",
+              "tertiary-fixed-dim": "#c8c6c5",
+              "on-surface-variant": "#4d4635",
+              "on-primary-fixed": "#241a00",
+              "on-tertiary-fixed": "#1c1b1b",
+              "tertiary-fixed": "#e5e2e1",
+              "surface-bright": "#fcf9f0",
+              "secondary-fixed": "#ffdcc5",
+              "surface-tint": "#735c00",
+              "inverse-primary": "#e9c349",
+              "surface-container-high": "#ebe8df",
+              "on-primary-fixed-variant": "#574500",
+              "on-secondary-fixed-variant": "#653d1e",
+              "inverse-on-surface": "#f4f1e8",
+              "error-container": "#ffdad6",
+              "inverse-surface": "#31312b",
+              "background": "#fcf9f0",
+              "on-tertiary-fixed-variant": "#474646",
+              "secondary-container": "#fdc39a",
+              "on-error": "#ffffff",
+              "on-primary-container": "#554300",
+              "primary-fixed-dim": "#e9c349",
+              "on-background": "#1c1c17",
+              "primary-fixed": "#ffe088",
+              "surface-container-lowest": "#ffffff",
+              "outline-variant": "#d0c5af",
+              "primary-container": "#d4af37",
+              "tertiary-container": "#b5b2b2",
+              "surface-container-highest": "#e5e2da",
+              "tertiary": "#5f5e5e",
+              "surface-dim": "#dddad1",
+              "surface": "#fcf9f0",
+              "on-surface": "#1c1c17",
+              "on-primary": "#ffffff",
+              "on-secondary-container": "#794e2e",
+              "secondary": "#805533",
+              "surface-container": "#f1eee5",
+              "on-tertiary": "#ffffff",
+              "secondary-fixed-dim": "#f4bb92",
+              "surface-variant": "#e5e2da"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #fcf9f0;
+            color: #1c1c17;
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f0]/80 backdrop-blur-md shadow-[0_8px_24px_rgba(28,28,23,0.04)]">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="text-[#735c00] active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-headline font-black text-xl tracking-tight text-[#735c00]">SIGAP</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="User profile photo" class="w-full h-auto object-cover" data-alt="Close-up professional portrait of a man with a friendly expression in a modern office setting with warm natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIqy1_lJiwtRg8EashGRZL_D6Vcjfxrf28NGKk9d3wu-zfVK4TvuQIzkiCWcoV4rtca1hpsh5IGfHOlp4Ys7EBSN3b1bnkZp7wMfpNtV735oNvdjR2cHIcZLkQUoji0Eodh3emLrVkRe7P5v5Ds0VvenVahOlMiAffTpFmS8TwRepK1uNHenYHFHviIp5EyCv7ie5vIMZ-2bvaBp8ENNij-I4ZKYkb8Lz_SGZHEVWC9mvBHEIXIl4iNKeJheF4WnhGuOOlCiIxcbYt"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-lg mx-auto min-h-screen flex flex-col gap-8">
+<!-- Welcome Section -->
+<section class="flex flex-col gap-1">
+<h2 class="font-headline font-extrabold text-3xl text-on-surface tracking-tight">Input Presensi</h2>
+<p class="text-secondary font-medium text-sm">Silahkan pilih status kehadiran Anda hari ini.</p>
+</section>
+<!-- Attendance Status Toggles -->
+<section class="grid grid-cols-1 gap-4">
+<!-- Hadir (Active State) -->
+<button class="flex items-center justify-between px-6 py-5 rounded-xl bg-primary-container text-white shadow-lg shadow-primary-container/20 border border-primary transition-all active:scale-95">
+<div class="flex items-center gap-4">
+<div class="bg-white/20 p-2 rounded-lg">
+<span class="material-symbols-outlined text-2xl" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<span class="font-headline font-bold text-lg tracking-wide uppercase">Hadir</span>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center">
+<div class="w-3 h-3 bg-white rounded-full"></div>
+</div>
+</button>
+<!-- Izin -->
+<button class="flex items-center justify-between px-6 py-5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 text-secondary hover:bg-surface-container-low transition-all active:scale-95 group">
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-low group-hover:bg-white p-2 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-2xl" data-icon="description">description</span>
+</div>
+<span class="font-headline font-bold text-lg tracking-wide uppercase">Izin</span>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant/50"></div>
+</button>
+<!-- Sakit -->
+<button class="flex items-center justify-between px-6 py-5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 text-secondary hover:bg-surface-container-low transition-all active:scale-95 group">
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-low group-hover:bg-white p-2 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-2xl" data-icon="medical_services">medical_services</span>
+</div>
+<span class="font-headline font-bold text-lg tracking-wide uppercase">Sakit</span>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant/50"></div>
+</button>
+</section>
+<!-- Location Card -->
+<section class="bg-surface-container-low rounded-2xl p-5 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+</div>
+<span class="font-label text-xs font-bold uppercase tracking-widest text-primary">GPS Aktif</span>
+</div>
+<span class="font-body text-xs text-on-surface-variant">2.4m Akurasi</span>
+</div>
+<div class="relative h-40 w-full rounded-xl overflow-hidden grayscale-[0.2] contrast-[1.1]">
+<img alt="Map placeholder" class="w-full h-full object-cover" data-alt="Stylized top-down satellite map view of a clean urban grid with soft beige and gold tones to match UI" data-location="Jakarta" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAN_NLm4oK3ctUCiE6hs6sYNVs-c5_wXzK4MakdjRPdpa0OPlyrYJtQxp1x_-iJvF9RqslQGSIq82EyVNoY9P0Yy7mggZlDxL3uY8vBKncwrr9aKNSi1OyCuUN8qIuaNzra5VnxvavGQWK1sk7zH_4khFzNk4uV9otQmsrvT0Cf-Tw4I22GZ2LfYSHETkwb8C2mf9F7fWDHnP9AvYVd8iU3nmj8QmT0bwsxlhn7OwDw-Og_WhKWZ03EzdSAdZQJu9ArCh4tsogdkqj1"/>
+<div class="absolute inset-0 bg-primary/10 mix-blend-multiply"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-2xl">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="person_pin_circle" style="font-variation-settings: 'FILL' 1;">person_pin_circle</span>
+</div>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container" data-icon="location_on" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<div class="flex flex-col">
+<p class="font-body text-sm font-bold text-on-surface">Lokasi Terdeteksi</p>
+<p class="font-body text-[10px] text-on-surface-variant leading-tight">Gedung Pusat Pemerintahan, Lantai 4, Jakarta Pusat</p>
+</div>
+</div>
+</section>
+<!-- Main Action Button -->
+<footer class="mt-auto pt-4">
+<button class="w-full h-14 bg-gradient-to-br from-primary to-primary-container text-white rounded-xl font-headline font-extrabold text-lg shadow-[0_12px_32px_rgba(115,92,0,0.3)] hover:shadow-[0_16px_40px_rgba(115,92,0,0.4)] transition-all active:scale-95 flex items-center justify-center gap-3">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+                Kirim Presensi
+            </button>
+<p class="text-center text-[10px] text-secondary mt-4 font-label uppercase tracking-tighter opacity-60">Waktu Server: 08:30:12 WIB</p>
+</footer>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-8 bg-white/80 backdrop-blur-md">
+<div class="w-[90%] flex justify-around items-center bg-white rounded-full border border-[#d0c5af]/15 shadow-[0_8px_24px_rgba(28,28,23,0.06)] px-2 py-1">
+<a class="flex flex-col items-center justify-center text-[#805533] p-2 transition-all hover:text-[#735c00]" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#d4af37] text-white rounded-full p-3 scale-110 -translate-y-2 shadow-lg shadow-[#d4af37]/40 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="location_on" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-0.5">Presensi</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#805533] p-2 transition-all hover:text-[#735c00]" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Laporan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#805533] p-2 transition-all hover:text-[#735c00]" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Rekap</span>
+</a>
+</div>
+</nav>
+</body></html>

@@ -1,0 +1,6 @@
+{
+  "name": "SIGAP - Digital Concierge",
+  "description": "Aplikasi presensi dan laporan kerja aparatur desa terintegrasi GPS dengan antarmuka Prestige Edition yang elegan.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
