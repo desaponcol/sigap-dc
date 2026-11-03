@@ -17,6 +17,7 @@ interface AdminDesaModalProps {
   onClose: () => void;
   onTenantAdded?: (tenant: TenantInfo) => void;
   onSelectTenant?: (tenant: TenantInfo) => void;
+  onUpdateUser?: (updated: UserProfile) => void;
   user?: UserProfile;
 }
 
@@ -24,6 +25,7 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
   isOpen,
   onClose,
   onSelectTenant,
+  onUpdateUser,
   user,
 }) => {
   const [activeTab, setActiveTab] = useState<'profil_balai' | 'aparatur' | 'lisensi_desa'>('profil_balai');
@@ -45,6 +47,9 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
   const [jamPulang, setJamPulang] = useState(currentVillageLicense?.jamPulang || '15:30');
   const [toleransiMenit, setToleransiMenit] = useState(String(currentVillageLicense?.toleransiMenit ?? 15));
   const [logoUrl, setLogoUrl] = useState(currentVillageLicense?.logoUrl || '');
+  const [contactPerson, setContactPerson] = useState(currentVillageLicense?.contactPerson || '');
+  const [adminEmail, setAdminEmail] = useState(currentVillageLicense?.adminEmail || '');
+  const [contactPhone, setContactPhone] = useState(currentVillageLicense?.contactPhone || '');
 
   // Employee Form State (Admin Desa creates accounts with password)
   const [namaPegawai, setNamaPegawai] = useState('');
@@ -71,6 +76,9 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
       setJamPulang(currentVillageLicense.jamPulang);
       setToleransiMenit(String(currentVillageLicense.toleransiMenit));
       setLogoUrl(currentVillageLicense.logoUrl || '');
+      setContactPerson(currentVillageLicense.contactPerson || '');
+      setAdminEmail(currentVillageLicense.adminEmail || '');
+      setContactPhone(currentVillageLicense.contactPhone || '');
     }
   }, [isOpen, currentVillageLicense?.licenseKey]);
 
@@ -154,6 +162,9 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
         namaDesa: namaDesa.trim(),
         kecamatan: kecamatan.trim(),
         kabupaten: kabupaten.trim(),
+        contactPerson: contactPerson.trim() || currentVillageLicense.contactPerson,
+        adminEmail: adminEmail.trim() || currentVillageLicense.adminEmail,
+        contactPhone: contactPhone.trim() || currentVillageLicense.contactPhone,
         officeLat: parseFloat(officeLat) || currentVillageLicense.officeLat,
         officeLng: parseFloat(officeLng) || currentVillageLicense.officeLng,
         allowedRadiusMeters: parseInt(radius, 10) || currentVillageLicense.allowedRadiusMeters,
@@ -164,6 +175,18 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
       };
 
       saveDesaLicense(updatedLicense);
+
+      // Sync active admin user display name if changed
+      if (onUpdateUser && user && user.role === 'admin_desa') {
+        const cleanName = contactPerson.replace(/\s*\(sekdes\)|\s*\(admin\s*sistem\)/gi, '').trim();
+        if (cleanName && cleanName !== user.name) {
+          onUpdateUser({
+            ...user,
+            name: cleanName,
+            email: adminEmail.trim() || user.email,
+          });
+        }
+      }
 
       if (onSelectTenant) {
         onSelectTenant({
@@ -180,6 +203,8 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
           jamMasuk: updatedLicense.jamMasuk,
           jamPulang: updatedLicense.jamPulang,
           toleransiMenit: updatedLicense.toleransiMenit,
+          contactPhone: updatedLicense.contactPhone,
+          adminEmail: updatedLicense.adminEmail,
           logoUrl: updatedLicense.logoUrl,
         });
       }
@@ -190,7 +215,7 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
 
       setStatusMessage({
         success: true,
-        text: `Pengaturan Balai ${updatedLicense.namaDesa} (koordinat GPS, radius ${updatedLicense.allowedRadiusMeters}m, jam kerja) berhasil diperbarui!`,
+        text: `Pengaturan Balai & Data Sekdes/Admin ${updatedLicense.namaDesa} berhasil diperbarui!`,
       });
     } catch (err: any) {
       setStatusMessage({
@@ -418,6 +443,54 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
                     value={`${kecamatan}, ${kabupaten}`}
                     className="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-xl text-xs text-gray-500 font-medium"
                   />
+                </div>
+              </div>
+
+              {/* Data Pejabat Sekretaris Desa / Penanggung Jawab Lisensi */}
+              <div className="p-4 rounded-2xl bg-[#fffcf7] border border-[#d4af37]/40 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#735c00] text-lg">badge</span>
+                  <span className="text-xs font-bold text-[#735c00] uppercase tracking-wider">
+                    Data Sekretaris Desa / Penanggung Jawab Balai
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-[#805533] mb-1">
+                      Nama Sekretaris Desa / Admin Resmi
+                    </label>
+                    <input
+                      type="text"
+                      value={contactPerson}
+                      onChange={(e) => setContactPerson(e.target.value)}
+                      placeholder="Contoh: Siti Rahayu, S.IP (Sekdes)"
+                      className="w-full px-3 py-2 bg-[#f6f3ea] border border-[#d0c5af]/40 rounded-xl text-xs font-bold text-[#1c1c17] outline-none focus:ring-2 focus:ring-[#d4af37]/40"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-[#805533] mb-1">
+                      Email Kedinasan Admin Desa
+                    </label>
+                    <input
+                      type="email"
+                      value={adminEmail}
+                      onChange={(e) => setAdminEmail(e.target.value)}
+                      placeholder="Contoh: admin@desa.go.id"
+                      className="w-full px-3 py-2 bg-[#f6f3ea] border border-[#d0c5af]/40 rounded-xl text-xs font-mono text-[#1c1c17] outline-none focus:ring-2 focus:ring-[#d4af37]/40"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-[10px] font-bold uppercase text-[#805533] mb-1">
+                      No. WhatsApp / Kontak Balai Desa
+                    </label>
+                    <input
+                      type="text"
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                      placeholder="Contoh: 085150617732"
+                      className="w-full px-3 py-2 bg-[#f6f3ea] border border-[#d0c5af]/40 rounded-xl text-xs font-mono text-[#1c1c17] outline-none focus:ring-2 focus:ring-[#d4af37]/40"
+                    />
+                  </div>
                 </div>
               </div>
 

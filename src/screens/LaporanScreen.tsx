@@ -43,7 +43,7 @@ export const LaporanScreen: React.FC<LaporanScreenProps> = ({
       detail: detail.trim(),
       output: output.trim(),
       timestamp: timestampStr,
-      location: 'Kantor Balai Desa Sukamaju',
+      location: user?.instansi || 'Kantor Balai Desa',
       status: 'TERVERIFIKASI',
     };
 

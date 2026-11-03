@@ -9,6 +9,7 @@ import {
   CURRENT_USER,
   getRegisteredDesaLicenses,
   getRegisteredEmployees,
+  saveRegisteredEmployee,
   INITIAL_ATTENDANCE_RECORDS,
   INITIAL_WORK_REPORTS,
 } from './data/mockData.ts';
@@ -422,6 +423,50 @@ export default function App() {
     showToast('Laporan kerja harian berhasil disimpan!');
   };
 
+  const handleUpdateReport = (updatedReport: WorkReport) => {
+    setWorkReports((prev) => {
+      const next = prev.map((r) => (r.id === updatedReport.id ? updatedReport : r));
+      try {
+        localStorage.setItem('sigap_work_reports', JSON.stringify(next));
+      } catch (e) {
+        console.warn('Failed to save updated report locally:', e);
+      }
+      return next;
+    });
+    showToast('Laporan kinerja harian berhasil diperbarui!');
+  };
+
+  const handleDeleteReport = (reportId: string) => {
+    setWorkReports((prev) => {
+      const next = prev.filter((r) => r.id !== reportId);
+      try {
+        localStorage.setItem('sigap_work_reports', JSON.stringify(next));
+      } catch (e) {
+        console.warn('Failed to remove report locally:', e);
+      }
+      return next;
+    });
+    showToast('Laporan kinerja telah dihapus.');
+  };
+
+  const handleUpdateUser = (updatedUser: UserProfile) => {
+    setUser(updatedUser);
+    try {
+      sessionStorage.setItem('sigap_auth_user', JSON.stringify(updatedUser));
+      const employees = getRegisteredEmployees();
+      const existing = employees.find(
+        (e) => e.id === updatedUser.id || e.email.toLowerCase() === updatedUser.email.toLowerCase()
+      );
+      saveRegisteredEmployee({
+        ...updatedUser,
+        password: existing?.password || 'admin123',
+      });
+    } catch (e) {
+      console.warn('Failed to persist user update:', e);
+    }
+    showToast(`Data profil ${updatedUser.name} berhasil diperbarui!`);
+  };
+
   const handleOpenAdminModal = () => {
     if (user.role === 'pegawai') {
       showToast('Akses Ditolak: Anda masuk sebagai Aparatur Desa. Menu ini khusus Admin Desa & Pengembang.');
@@ -536,6 +581,8 @@ export default function App() {
           workReports={villageWorkReports}
           onSelectRecord={(rec) => setSelectedRecord(rec)}
           onOpenPdfModal={() => setIsPdfModalOpen(true)}
+          onUpdateReport={handleUpdateReport}
+          onDeleteReport={handleDeleteReport}
         />
       )}
 
@@ -571,6 +618,7 @@ export default function App() {
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
         user={user}
+        onUpdateUser={handleUpdateUser}
       />
 
       {/* Attendance Item Detail Modal */}
@@ -593,6 +641,7 @@ export default function App() {
         isOpen={isAdminModalOpen}
         onClose={() => setIsAdminModalOpen(false)}
         user={user}
+        onUpdateUser={handleUpdateUser}
         onTenantAdded={(newTenant) => {
           handleSelectTenant(newTenant);
           showToast(`Desa ${newTenant.namaDesa} berhasil ditambahkan dan aktif!`);
