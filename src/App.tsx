@@ -39,6 +39,11 @@ import {
   isSupabaseConfigured,
 } from './services/supabase.ts';
 import { DesaLicense } from './types/index.ts';
+import {
+  sortAttendanceRecordsByDate,
+  sortWorkReportsByDate,
+  hasUserCheckedInToday,
+} from './utils/presence.ts';
 
 function resolveMatchingTenant(
   allTenants: (TenantInfo | DesaLicense)[],
@@ -188,20 +193,21 @@ export default function App() {
       const saved = localStorage.getItem('sigap_attendance_records');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.length >= 10) return parsed;
+        if (parsed.length >= 1) return sortAttendanceRecordsByDate(parsed, false);
       }
-      return INITIAL_ATTENDANCE_RECORDS;
+      return sortAttendanceRecordsByDate(INITIAL_ATTENDANCE_RECORDS, false);
     } catch {
-      return INITIAL_ATTENDANCE_RECORDS;
+      return sortAttendanceRecordsByDate(INITIAL_ATTENDANCE_RECORDS, false);
     }
   });
 
   const [workReports, setWorkReports] = useState<WorkReport[]>(() => {
     try {
       const saved = localStorage.getItem('sigap_work_reports');
-      return saved ? JSON.parse(saved) : INITIAL_WORK_REPORTS;
+      const list = saved ? JSON.parse(saved) : INITIAL_WORK_REPORTS;
+      return sortWorkReportsByDate(list, false);
     } catch {
-      return INITIAL_WORK_REPORTS;
+      return sortWorkReportsByDate(INITIAL_WORK_REPORTS, false);
     }
   });
 
@@ -384,12 +390,29 @@ export default function App() {
   };
 
   const handlePresensiSuccess = async (newRecord: AttendanceRecord) => {
+    // ATURAN KETAT: Presensi hanya 1 kali dalam satu hari (tidak boleh absen dobel)
+    const checkResult = hasUserCheckedInToday(attendanceRecords, user.id, newRecord.date);
+    if (checkResult.checkedIn) {
+      showToast('Presensi ditolak: Anda sudah melakukan presensi hari ini (Maksimal 1 kali sehari).');
+      return;
+    }
+
     const recordWithTenant: AttendanceRecord = {
       ...newRecord,
       tenantId: selectedTenant.id,
       employeeId: user.id,
     };
-    setAttendanceRecords((prev) => [recordWithTenant, ...prev]);
+
+    setAttendanceRecords((prev) => {
+      // Otomatis urutkan tanggal terbaru di atas
+      const next = sortAttendanceRecordsByDate([recordWithTenant, ...prev], false);
+      try {
+        localStorage.setItem('sigap_attendance_records', JSON.stringify(next));
+      } catch (e) {
+        console.warn('Failed to save attendance locally:', e);
+      }
+      return next;
+    });
 
     // Push to Supabase if configured
     if (isSupabaseConfigured()) {
@@ -400,7 +423,7 @@ export default function App() {
       }
     }
 
-    showToast(`Presensi ${newRecord.status} berhasil terekam!`);
+    showToast(`Presensi ${newRecord.status} berhasil terekam (1x per hari)!`);
   };
 
   const handleLaporanSuccess = async (newReport: WorkReport) => {
@@ -409,7 +432,16 @@ export default function App() {
       tenantId: selectedTenant.id,
       employeeId: user.id,
     };
-    setWorkReports((prev) => [reportWithTenant, ...prev]);
+    setWorkReports((prev) => {
+      // Otomatis berurutan sesuai tanggal kegiatan
+      const next = sortWorkReportsByDate([reportWithTenant, ...prev], false);
+      try {
+        localStorage.setItem('sigap_work_reports', JSON.stringify(next));
+      } catch (e) {
+        console.warn('Failed to save reports locally:', e);
+      }
+      return next;
+    });
 
     // Push to Supabase if configured
     if (isSupabaseConfigured()) {
@@ -425,7 +457,9 @@ export default function App() {
 
   const handleUpdateReport = (updatedReport: WorkReport) => {
     setWorkReports((prev) => {
-      const next = prev.map((r) => (r.id === updatedReport.id ? updatedReport : r));
+      const mapped = prev.map((r) => (r.id === updatedReport.id ? updatedReport : r));
+      // ATURAN OTOMATIS: Tanggal akan selalu otomatis berurutan secara rapi meskipun tanggal diedit
+      const next = sortWorkReportsByDate(mapped, false);
       try {
         localStorage.setItem('sigap_work_reports', JSON.stringify(next));
       } catch (e) {
@@ -433,7 +467,7 @@ export default function App() {
       }
       return next;
     });
-    showToast('Laporan kinerja harian berhasil diperbarui!');
+    showToast('Laporan kerja berhasil diperbarui & posisi tanggal diurutkan otomatis!');
   };
 
   const handleDeleteReport = (reportId: string) => {
@@ -559,6 +593,7 @@ export default function App() {
         <PresensiScreen
           user={user}
           selectedTenant={selectedTenant}
+          attendanceRecords={villageAttendanceRecords}
           isInsideRadius={isInsideRadius}
           distanceMeters={distanceMeters}
           onPresensiSuccess={handlePresensiSuccess}

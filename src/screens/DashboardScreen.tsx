@@ -31,6 +31,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   const izinCount = attendanceRecords.filter((r) => r.status === 'IZIN').length;
   const sakitCount = attendanceRecords.filter((r) => r.status === 'SAKIT').length;
 
+  const todayIso = new Date().toISOString().split('T')[0];
+  const todayRecord = attendanceRecords.find(
+    (r) => r.date === todayIso && (!r.employeeId || r.employeeId === user.id)
+  );
+  const alreadyPresensiToday = Boolean(todayRecord);
+
   const sliderPercent = isInsideRadius
     ? Math.max(10, Math.min(92, 100 - (distanceMeters / 50) * 15))
     : 20;
@@ -164,18 +170,33 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full">
         <button
           onClick={() => onNavigate('presensi')}
-          aria-label="Mulai Presensi"
-          className="flex flex-col items-center justify-center gap-2 sm:gap-3 p-4 sm:p-6 bg-gradient-to-br from-[#735c00] to-[#d4af37] text-white rounded-2xl sm:rounded-[2rem] shadow-lg shadow-[#735c00]/20 active:scale-[0.98] hover:shadow-xl transition-all duration-150 cursor-pointer group min-h-[96px]"
+          aria-label={alreadyPresensiToday ? 'Presensi Hari Ini Telah Selesai' : 'Mulai Presensi'}
+          className={`flex flex-col items-center justify-center gap-1.5 sm:gap-2 p-3.5 sm:p-5 rounded-2xl sm:rounded-[2rem] shadow-sm active:scale-[0.98] transition-all duration-150 cursor-pointer group min-h-[96px] text-center ${
+            alreadyPresensiToday
+              ? 'bg-[#f6f3ea] text-[#5C4300] border-2 border-[#d4af37]/60 hover:bg-[#fffcf7]'
+              : 'bg-gradient-to-br from-[#735c00] to-[#d4af37] text-white shadow-lg shadow-[#735c00]/20 hover:shadow-xl'
+          }`}
         >
           <span
-            className="material-symbols-outlined text-2xl sm:text-3xl group-hover:scale-110 transition-transform"
+            className={`material-symbols-outlined text-2xl sm:text-3xl transition-transform group-hover:scale-110 ${
+              alreadyPresensiToday ? 'text-emerald-700' : ''
+            }`}
             style={{ fontVariationSettings: "'FILL' 1" }}
           >
-            login
+            {alreadyPresensiToday ? 'check_circle' : 'login'}
           </span>
-          <span className="font-headline font-bold tracking-tight text-xs sm:text-base text-center">
-            Mulai Presensi
-          </span>
+          <div className="flex flex-col items-center leading-tight">
+            <span className="font-headline font-bold tracking-tight text-xs sm:text-sm">
+              {alreadyPresensiToday ? 'Presensi Hari Ini' : 'Mulai Presensi'}
+            </span>
+            <span
+              className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mt-0.5 ${
+                alreadyPresensiToday ? 'text-emerald-800' : 'text-white/90'
+              }`}
+            >
+              {alreadyPresensiToday ? `${todayRecord?.status} ✓` : '1x Per Hari'}
+            </span>
+          </div>
         </button>
 
         <button

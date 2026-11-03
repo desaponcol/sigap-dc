@@ -145,7 +145,11 @@ export const PdfExportModal: React.FC<PdfExportModalProps> = ({
 
   // Robust HTML string generation for direct standalone download and iframe printing
   const generateStandaloneHtml = () => {
-    const tableRows = attendanceRecords
+    // ATURAN RESMI: Urutan tanggal selalu kronologis teratur (tanggal awal ke akhir)
+    const sortedAttendance = [...attendanceRecords].sort((a, b) => a.date.localeCompare(b.date));
+    const sortedReports = [...workReports].sort((a, b) => a.date.localeCompare(b.date));
+
+    const tableRows = sortedAttendance
       .map((rec, idx) => {
         const isHadir = rec.status === 'HADIR';
         const isDinas = rec.status === 'DINAS';
@@ -186,7 +190,7 @@ export const PdfExportModal: React.FC<PdfExportModalProps> = ({
       })
       .join('');
 
-    const workReportRows = workReports
+    const workReportRows = sortedReports
       .map(
         (rep) => `
       <div style="background: #faf8f2; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 11px;">

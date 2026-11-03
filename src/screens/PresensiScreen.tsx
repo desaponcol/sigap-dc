@@ -7,6 +7,7 @@ import { TenantInfo } from '../services/supabase.ts';
 interface PresensiScreenProps {
   user: UserProfile;
   selectedTenant?: TenantInfo;
+  attendanceRecords?: AttendanceRecord[];
   isInsideRadius: boolean;
   distanceMeters: number;
   onPresensiSuccess: (record: AttendanceRecord) => void;
@@ -16,12 +17,21 @@ interface PresensiScreenProps {
 export const PresensiScreen: React.FC<PresensiScreenProps> = ({
   user,
   selectedTenant,
+  attendanceRecords = [],
   isInsideRadius,
   distanceMeters,
   onPresensiSuccess,
   onNavigateRekap,
 }) => {
-  const [selectedStatus, setSelectedStatus] = useState<AttendanceStatus>('HADIR');
+  const todayIso = new Date().toISOString().split('T')[0];
+  const existingTodayRecord = attendanceRecords.find(
+    (r) => r.date === todayIso && (!r.employeeId || r.employeeId === user.id)
+  );
+  const isAlreadyPresensiToday = Boolean(existingTodayRecord);
+
+  const [selectedStatus, setSelectedStatus] = useState<AttendanceStatus>(
+    existingTodayRecord?.status || 'HADIR'
+  );
   const [note, setNote] = useState('');
   const [tujuanDinas, setTujuanDinas] = useState('');
   const [serverTime, setServerTime] = useState(formatTimeWIB(new Date()));
@@ -38,6 +48,9 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // STRICT RULE: Maksimal 1 kali presensi per hari
+    if (isAlreadyPresensiToday) return;
+
     setIsSubmitting(true);
 
     const now = new Date();
@@ -121,6 +134,70 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
           Pilih status kehadiran atau tugas kedinasan Anda hari ini.
         </p>
       </section>
+
+      {/* NOTIFIKASI: PRESENSI 1 KALI SEHARI TELAH TERPENUHI */}
+      {isAlreadyPresensiToday && existingTodayRecord && (
+        <section className="p-4 sm:p-5 rounded-2xl bg-[#fcf9f0] border-2 border-[#d4af37] shadow-sm space-y-3 animate-fadeIn">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                verified
+              </span>
+            </div>
+            <div>
+              <h4 className="font-headline font-bold text-sm sm:text-base text-[#1c1c17]">
+                Presensi Hari Ini Telah Terekam
+              </h4>
+              <p className="text-[11px] font-semibold text-[#735c00] uppercase tracking-wider">
+                Aturan Sistem: Maksimal 1 Kali Presensi Per Hari
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white p-3.5 rounded-xl border border-[#d0c5af]/30 text-xs space-y-2 text-[#4d4635]">
+            <div className="flex justify-between items-center">
+              <span className="text-[#7f7663]">Status Tercatat:</span>
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                  existingTodayRecord.status === 'HADIR'
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                    : existingTodayRecord.status === 'DINAS'
+                    ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                    : 'bg-amber-100 text-amber-800 border border-amber-200'
+                }`}
+              >
+                {existingTodayRecord.status === 'DINAS' ? 'PERJALANAN DINAS' : existingTodayRecord.status}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#7f7663]">Waktu Presensi:</span>
+              <span className="font-mono font-bold text-[#1c1c17]">
+                {existingTodayRecord.checkInTime ? `${existingTodayRecord.checkInTime} WIB` : 'Tercatat'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#7f7663]">Titik Lokasi:</span>
+              <span className="font-semibold text-[#1c1c17] truncate max-w-[220px] text-right">
+                {existingTodayRecord.locationName}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <span className="text-[11px] text-[#805533] italic">
+              🔒 Data absensi Anda hari ini telah terkunci otomatis demi keabsahan data.
+            </span>
+            <button
+              type="button"
+              onClick={onNavigateRekap}
+              className="px-3 py-1.5 bg-[#735c00] hover:bg-[#5e4b00] text-white rounded-lg text-xs font-bold shrink-0 transition-all cursor-pointer flex items-center gap-1 shadow-xs"
+            >
+              <span className="material-symbols-outlined text-xs">history</span>
+              <span>Buka Rekap</span>
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* Attendance Status Toggles (4 Options) */}
       <section className="grid grid-cols-1 gap-2.5 sm:gap-3">
@@ -457,16 +534,31 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
       <footer className="mt-auto pt-2 space-y-3">
         <button
           onClick={handleSubmit}
-          disabled={isSubmitting}
-          aria-label={selectedStatus === 'DINAS' ? 'Kirim Presensi Perjalanan Dinas' : 'Kirim Presensi Kehadiran'}
-          className={`w-full h-14 text-white rounded-xl font-headline font-extrabold text-base shadow-lg transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer ${
-            selectedStatus === 'DINAS'
-              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 shadow-blue-600/30 hover:from-blue-700 hover:to-indigo-700'
-              : 'bg-gradient-to-br from-[#735c00] to-[#d4af37] shadow-[#735c00]/30 hover:shadow-[#735c00]/40'
+          disabled={isSubmitting || isAlreadyPresensiToday}
+          aria-label={
+            isAlreadyPresensiToday
+              ? 'Presensi Hari Ini Telah Selesai'
+              : selectedStatus === 'DINAS'
+              ? 'Kirim Presensi Perjalanan Dinas'
+              : 'Kirim Presensi Kehadiran'
+          }
+          className={`w-full h-14 rounded-xl font-headline font-extrabold text-base transition-all duration-150 flex items-center justify-center gap-3 ${
+            isAlreadyPresensiToday
+              ? 'bg-[#f6f3ea] text-[#7f7663] border border-[#d0c5af]/50 cursor-not-allowed shadow-none'
+              : selectedStatus === 'DINAS'
+              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-600/30 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] cursor-pointer shadow-lg'
+              : 'bg-gradient-to-br from-[#735c00] to-[#d4af37] text-white shadow-[#735c00]/30 hover:shadow-[#735c00]/40 active:scale-[0.98] cursor-pointer shadow-lg'
           }`}
         >
           {isSubmitting ? (
             <span className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></span>
+          ) : isAlreadyPresensiToday ? (
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-[#5C4300] font-bold">
+              <span className="material-symbols-outlined text-emerald-600 text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                check_circle
+              </span>
+              <span>Sudah Presensi Hari Ini (1 Kali / Hari)</span>
+            </div>
           ) : (
             <>
               <span className="material-symbols-outlined">
@@ -482,7 +574,7 @@ export const PresensiScreen: React.FC<PresensiScreenProps> = ({
         </button>
 
         <p className="text-center text-[10px] text-[#805533] font-label uppercase tracking-tighter opacity-80">
-          Waktu Server: {serverTime}
+          Waktu Server: {serverTime} {isAlreadyPresensiToday && '• Status: Selesai'}
         </p>
       </footer>
 

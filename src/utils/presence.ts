@@ -56,6 +56,8 @@ export type AttendanceStatus = 'HADIR' | 'IZIN' | 'SAKIT' | 'ALPA' | 'DINAS';
 
 export interface AttendanceRecord {
   id: string;
+  tenantId?: string;
+  employeeId?: string;
   date: string; // ISO YYYY-MM-DD
   dayName: string;
   formattedDate: string;
@@ -74,6 +76,8 @@ export interface AttendanceRecord {
 
 export interface WorkReport {
   id: string;
+  tenantId?: string;
+  employeeId?: string;
   date: string;
   detail: string;
   output: string;
@@ -196,3 +200,64 @@ export function formatDynamicIndonesianDate(dateObj: Date = new Date()): {
     periodLabel: `${monthName} ${year}`,
   };
 }
+
+/**
+ * Sorts Work Reports strictly by date
+ * @param ascending If true, oldest to newest (e.g. for PDF monthly chronological report); If false, newest on top (e.g. for app history feed)
+ */
+export function sortWorkReportsByDate(
+  reports: WorkReport[],
+  ascending: boolean = false
+): WorkReport[] {
+  return [...reports].sort((a, b) => {
+    const timeA = new Date(a.date).getTime() || 0;
+    const timeB = new Date(b.date).getTime() || 0;
+    if (timeA !== timeB) {
+      return ascending ? timeA - timeB : timeB - timeA;
+    }
+    // Secondary fallback: by timestamp or id
+    return ascending
+      ? (a.timestamp || '').localeCompare(b.timestamp || '')
+      : (b.timestamp || '').localeCompare(a.timestamp || '');
+  });
+}
+
+/**
+ * Sorts Attendance Records strictly by date
+ * @param ascending If true, oldest to newest; If false, newest on top
+ */
+export function sortAttendanceRecordsByDate(
+  records: AttendanceRecord[],
+  ascending: boolean = false
+): AttendanceRecord[] {
+  return [...records].sort((a, b) => {
+    const timeA = new Date(a.date).getTime() || 0;
+    const timeB = new Date(b.date).getTime() || 0;
+    if (timeA !== timeB) {
+      return ascending ? timeA - timeB : timeB - timeA;
+    }
+    return ascending
+      ? (a.checkInTime || '').localeCompare(b.checkInTime || '')
+      : (b.checkInTime || '').localeCompare(a.checkInTime || '');
+  });
+}
+
+/**
+ * Check whether a user has already checked in on a specific date (enforcing 1 presensi / hari)
+ */
+export function hasUserCheckedInToday(
+  records: AttendanceRecord[],
+  userId?: string,
+  targetIsoDate: string = new Date().toISOString().split('T')[0]
+): { checkedIn: boolean; record?: AttendanceRecord } {
+  const match = records.find(
+    (r) =>
+      r.date === targetIsoDate &&
+      (!userId || !r.employeeId || r.employeeId === userId)
+  );
+  return {
+    checkedIn: Boolean(match),
+    record: match,
+  };
+}
+
