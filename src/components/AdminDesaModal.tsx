@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   getRegisteredDesaLicenses,
   getRegisteredEmployees,
   saveDesaLicense,
   saveRegisteredEmployee,
+  deleteRegisteredEmployee,
 } from '../data/mockData.ts';
 import {
   isSupabaseConfigured,
@@ -11,6 +12,7 @@ import {
   TenantInfo,
 } from '../services/supabase.ts';
 import { DesaLicense, UserProfile } from '../types/index.ts';
+import { processImageFile, OFFICIAL_PRESET_AVATARS } from '../utils/imageUtils.ts';
 
 interface AdminDesaModalProps {
   isOpen: boolean;
@@ -50,14 +52,30 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
   const [contactPerson, setContactPerson] = useState(currentVillageLicense?.contactPerson || '');
   const [adminEmail, setAdminEmail] = useState(currentVillageLicense?.adminEmail || '');
   const [contactPhone, setContactPhone] = useState(currentVillageLicense?.contactPhone || '');
+  const [adminPhotoUrl, setAdminPhotoUrl] = useState(
+    user?.avatarUrl || currentVillageLicense?.adminPhotoUrl || OFFICIAL_PRESET_AVATARS[2].url
+  );
 
-  // Employee Form State (Admin Desa creates accounts with password)
+  // Employee Form State (Admin Desa creates accounts with photo and password)
   const [namaPegawai, setNamaPegawai] = useState('');
   const [nipPegawai, setNipPegawai] = useState('');
   const [jabatanPegawai, setJabatanPegawai] = useState('');
   const [emailPegawai, setEmailPegawai] = useState('');
   const [passwordPegawai, setPasswordPegawai] = useState('');
   const [showPegawaiPass, setShowPegawaiPass] = useState(true);
+  const [fotoPegawai, setFotoPegawai] = useState(OFFICIAL_PRESET_AVATARS[0].url);
+
+  // Edit Existing Employee State
+  const [editingEmp, setEditingEmp] = useState<(UserProfile & { password?: string }) | null>(null);
+  const [editEmpPhoto, setEditEmpPhoto] = useState('');
+  const [editEmpName, setEditEmpName] = useState('');
+  const [editEmpNip, setEditEmpNip] = useState('');
+  const [editEmpJabatan, setEditEmpJabatan] = useState('');
+  const [editEmpPassword, setEditEmpPassword] = useState('');
+
+  // Dynamic Employee List for this village
+  const [employeeList, setEmployeeList] = useState<(UserProfile & { password?: string })[]>([]);
+  const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
 
   // Status and feedback
   const [statusMessage, setStatusMessage] = useState<{ success: boolean; text: string } | null>(null);
@@ -79,8 +97,14 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
       setContactPerson(currentVillageLicense.contactPerson || '');
       setAdminEmail(currentVillageLicense.adminEmail || '');
       setContactPhone(currentVillageLicense.contactPhone || '');
+      setAdminPhotoUrl(
+        user?.avatarUrl || currentVillageLicense.adminPhotoUrl || OFFICIAL_PRESET_AVATARS[2].url
+      );
+      setEmployeeList(
+        getRegisteredEmployees(currentVillageLicense.id).filter((e) => e.role === 'pegawai')
+      );
     }
-  }, [isOpen, currentVillageLicense?.licenseKey]);
+  }, [isOpen, currentVillageLicense?.licenseKey, user?.avatarUrl]);
 
   if (!isOpen) return null;
 
@@ -119,10 +143,10 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
     );
   }
 
-  // List of employees in this specific village only (Strict Tenant Isolation)
-  const currentVillageEmployees = getRegisteredEmployees(currentVillageLicense?.id).filter(
-    (e) => e.role === 'pegawai'
-  );
+  // Active employees in this village
+  const currentVillageEmployees = employeeList.length > 0 
+    ? employeeList 
+    : getRegisteredEmployees(currentVillageLicense?.id).filter((e) => e.role === 'pegawai');
 
   const handleUseCurrentGps = () => {
     if (navigator.geolocation) {
@@ -151,6 +175,72 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
     }
   };
 
+  // Upload photo handler for Admin Desa / Sekdes
+  const handleAdminPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsProcessingPhoto(true);
+    try {
+      const dataUrl = await processImageFile(file, 400, 0.88);
+      setAdminPhotoUrl(dataUrl);
+      setStatusMessage({
+        success: true,
+        text: 'Foto profil Admin/Sekdes berhasil dimuat! Klik "Simpan Pengaturan Balai Desa" untuk menerapkan.',
+      });
+    } catch (err: any) {
+      setStatusMessage({
+        success: false,
+        text: err.message || 'Gagal memproses foto.',
+      });
+    } finally {
+      setIsProcessingPhoto(false);
+    }
+  };
+
+  // Upload photo handler for New Employee
+  const handleFotoPegawaiUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsProcessingPhoto(true);
+    try {
+      const dataUrl = await processImageFile(file, 400, 0.88);
+      setFotoPegawai(dataUrl);
+      setStatusMessage({
+        success: true,
+        text: 'Foto calon aparatur berhasil dimuat!',
+      });
+    } catch (err: any) {
+      setStatusMessage({
+        success: false,
+        text: err.message || 'Gagal memproses foto.',
+      });
+    } finally {
+      setIsProcessingPhoto(false);
+    }
+  };
+
+  // Upload photo handler for Editing Existing Employee
+  const handleEditEmpPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsProcessingPhoto(true);
+    try {
+      const dataUrl = await processImageFile(file, 400, 0.88);
+      setEditEmpPhoto(dataUrl);
+      setStatusMessage({
+        success: true,
+        text: 'Foto baru aparatur berhasil dimuat! Klik "Simpan Foto & Data Aparatur".',
+      });
+    } catch (err: any) {
+      setStatusMessage({
+        success: false,
+        text: err.message || 'Gagal memproses foto.',
+      });
+    } finally {
+      setIsProcessingPhoto(false);
+    }
+  };
+
   const handleSaveBalaiSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -172,20 +262,20 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
         jamPulang: jamPulang || '15:30',
         toleransiMenit: parseInt(toleransiMenit, 10) || 15,
         logoUrl: logoUrl.trim() || undefined,
+        adminPhotoUrl: adminPhotoUrl.trim() || undefined,
       };
 
       saveDesaLicense(updatedLicense);
 
-      // Sync active admin user display name if changed
+      // Sync active admin user display name & avatar if changed
       if (onUpdateUser && user && user.role === 'admin_desa') {
         const cleanName = contactPerson.replace(/\s*\(sekdes\)|\s*\(admin\s*sistem\)/gi, '').trim();
-        if (cleanName && cleanName !== user.name) {
-          onUpdateUser({
-            ...user,
-            name: cleanName,
-            email: adminEmail.trim() || user.email,
-          });
-        }
+        onUpdateUser({
+          ...user,
+          name: cleanName || user.name,
+          email: adminEmail.trim() || user.email,
+          avatarUrl: adminPhotoUrl.trim() || user.avatarUrl,
+        });
       }
 
       if (onSelectTenant) {
@@ -249,11 +339,13 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
         role: 'pegawai',
         tenantId: currentVillageLicense?.id || 'c0000000-0000-0000-0000-000000000003',
         desaLicenseKey: currentVillageLicense?.licenseKey,
-        avatarUrl:
-          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80',
+        avatarUrl: fotoPegawai.trim() || OFFICIAL_PRESET_AVATARS[0].url,
       };
 
       saveRegisteredEmployee(newEmployee);
+      setEmployeeList(
+        getRegisteredEmployees(currentVillageLicense?.id).filter((e) => e.role === 'pegawai')
+      );
 
       setStatusMessage({
         success: true,
@@ -266,11 +358,76 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
       setJabatanPegawai('');
       setEmailPegawai('');
       setPasswordPegawai('');
+      setFotoPegawai(OFFICIAL_PRESET_AVATARS[0].url);
     } catch (err: any) {
       setStatusMessage({
         success: false,
         text: `Gagal menambahkan aparatur: ${err.message}`,
       });
+    }
+  };
+
+  const handleStartEditEmployee = (emp: UserProfile & { password?: string }) => {
+    setEditingEmp(emp);
+    setEditEmpPhoto(emp.avatarUrl || OFFICIAL_PRESET_AVATARS[0].url);
+    setEditEmpName(emp.name);
+    setEditEmpNip(emp.nip);
+    setEditEmpJabatan(emp.jabatan);
+    setEditEmpPassword(emp.password || 'admin123');
+  };
+
+  const handleSaveEditEmployee = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingEmp) return;
+
+    try {
+      const updatedEmp: UserProfile & { password: string } = {
+        ...editingEmp,
+        name: editEmpName.trim() || editingEmp.name,
+        nip: editEmpNip.trim() || editingEmp.nip,
+        jabatan: editEmpJabatan.trim() || editingEmp.jabatan,
+        password: editEmpPassword.trim() || (editingEmp as any).password || 'admin123',
+        avatarUrl: editEmpPhoto.trim() || editingEmp.avatarUrl,
+      };
+
+      saveRegisteredEmployee(updatedEmp);
+      setEmployeeList(
+        getRegisteredEmployees(currentVillageLicense?.id).filter((e) => e.role === 'pegawai')
+      );
+
+      // If active user is this employee, update active session
+      if (user && (user.id === updatedEmp.id || user.email.toLowerCase() === updatedEmp.email.toLowerCase())) {
+        if (onUpdateUser) {
+          onUpdateUser(updatedEmp);
+        }
+      }
+
+      setStatusMessage({
+        success: true,
+        text: `Foto & data aparatur ${updatedEmp.name} berhasil diperbarui!`,
+      });
+      setEditingEmp(null);
+    } catch (err: any) {
+      setStatusMessage({
+        success: false,
+        text: `Gagal memperbarui data aparatur: ${err.message}`,
+      });
+    }
+  };
+
+  const handleDeleteEmployee = (emp: UserProfile & { password?: string }) => {
+    if (window.confirm(`Hapus akun aparatur ${emp.name}? Tindakan ini tidak dapat dibatalkan.`)) {
+      deleteRegisteredEmployee(emp.id, emp.email);
+      setEmployeeList(
+        getRegisteredEmployees(currentVillageLicense?.id).filter((e) => e.role === 'pegawai')
+      );
+      setStatusMessage({
+        success: true,
+        text: `Akun aparatur ${emp.name} berhasil dihapus dari balai desa.`,
+      });
+      if (editingEmp?.id === emp.id) {
+        setEditingEmp(null);
+      }
     }
   };
 
@@ -447,12 +604,69 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
               </div>
 
               {/* Data Pejabat Sekretaris Desa / Penanggung Jawab Lisensi */}
-              <div className="p-4 rounded-2xl bg-[#fffcf7] border border-[#d4af37]/40 space-y-3">
+              <div className="p-4 rounded-2xl bg-[#fffcf7] border border-[#d4af37]/40 space-y-3.5">
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-[#735c00] text-lg">badge</span>
                   <span className="text-xs font-bold text-[#735c00] uppercase tracking-wider">
-                    Data Sekretaris Desa / Penanggung Jawab Balai
+                    Data &amp; Foto Pejabat Sekretaris Desa (Admin Balai)
                   </span>
+                </div>
+
+                {/* Foto Profil Admin / Sekdes Balai */}
+                <div className="p-3 bg-white rounded-xl border border-[#d0c5af]/30 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold uppercase text-[#805533] flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm text-[#735c00]">photo_camera</span>
+                      <span>Foto Profil Pejabat / Sekdes Balai Desa</span>
+                    </label>
+                    <span className="text-[9px] text-[#805533]">Tampil di Header &amp; Profil</span>
+                  </div>
+
+                  <div className="flex items-center gap-3.5">
+                    <img
+                      src={adminPhotoUrl}
+                      alt="Foto Admin Desa"
+                      className="w-14 h-14 rounded-full object-cover border-2 border-[#d4af37] shadow-sm shrink-0"
+                    />
+
+                    <div className="flex-1 space-y-1.5">
+                      <input
+                        type="file"
+                        id="admin-photo-input"
+                        accept="image/png, image/jpeg, image/jpg, image/webp"
+                        onChange={handleAdminPhotoUpload}
+                        className="hidden"
+                      />
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <label
+                          htmlFor="admin-photo-input"
+                          className="px-2.5 py-1.5 bg-[#735c00] hover:bg-[#5e4b00] text-white rounded-lg text-xs font-bold cursor-pointer inline-flex items-center gap-1 active:scale-95 transition-all shadow-xs"
+                        >
+                          <span className="material-symbols-outlined text-xs">upload</span>
+                          <span>Upload Foto Sekdes</span>
+                        </label>
+
+                        <div className="flex items-center gap-1">
+                          {OFFICIAL_PRESET_AVATARS.slice(0, 4).map((p, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setAdminPhotoUrl(p.url)}
+                              title={p.label}
+                              className={`w-6 h-6 rounded-full border overflow-hidden transition-all cursor-pointer ${
+                                adminPhotoUrl === p.url ? 'border-[#735c00] ring-1 ring-[#735c00] scale-110' : 'opacity-60 hover:opacity-100'
+                              }`}
+                            >
+                              <img src={p.url} alt={p.label} className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-gray-500">
+                        Foto ini akan digunakan sebagai avatar resmi Admin Desa di sistem presensi.
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -729,10 +943,69 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
               </div>
 
               {/* Form Tambah Aparatur */}
-              <form onSubmit={handleAddEmployee} className="p-4 bg-white rounded-2xl border border-[#d0c5af]/30 space-y-3">
-                <h5 className="font-headline font-bold text-xs text-[#1c1c17]">
-                  + Buat Akun Aparatur Baru
+              <form onSubmit={handleAddEmployee} className="p-4 bg-white rounded-2xl border border-[#d0c5af]/30 space-y-3.5">
+                <h5 className="font-headline font-bold text-xs text-[#1c1c17] flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm text-[#735c00]">person_add</span>
+                  <span>+ Buat Akun Aparatur Baru</span>
                 </h5>
+
+                {/* Section Foto Profil Aparatur Baru */}
+                <div className="p-3 bg-[#fcf9f0] rounded-xl border border-[#d4af37]/40 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold uppercase text-[#6B4F1D] flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm text-[#735c00]">photo_camera</span>
+                      <span>Foto Profil Aparatur Desa</span>
+                    </label>
+                    <span className="text-[9px] text-[#805533]">Dapat diunggah sekarang atau diedit nanti</span>
+                  </div>
+
+                  <div className="flex items-center gap-3.5">
+                    <img
+                      src={fotoPegawai}
+                      alt="Preview Aparatur"
+                      className="w-14 h-14 rounded-full object-cover border-2 border-[#d4af37] shadow-sm shrink-0 bg-white"
+                    />
+
+                    <div className="flex-1 space-y-1.5">
+                      <input
+                        type="file"
+                        id="foto-pegawai-input"
+                        accept="image/png, image/jpeg, image/jpg, image/webp"
+                        onChange={handleFotoPegawaiUpload}
+                        className="hidden"
+                      />
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <label
+                          htmlFor="foto-pegawai-input"
+                          className="px-2.5 py-1.5 bg-[#735c00] hover:bg-[#5e4b00] text-white rounded-lg text-xs font-bold cursor-pointer inline-flex items-center gap-1 active:scale-95 transition-all shadow-xs"
+                        >
+                          <span className="material-symbols-outlined text-xs">upload</span>
+                          <span>Upload Foto (HP / Laptop)</span>
+                        </label>
+
+                        {/* Presets */}
+                        <div className="flex items-center gap-1">
+                          {OFFICIAL_PRESET_AVATARS.map((p, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setFotoPegawai(p.url)}
+                              title={p.label}
+                              className={`w-6 h-6 rounded-full border overflow-hidden transition-all cursor-pointer ${
+                                fotoPegawai === p.url ? 'border-[#735c00] ring-1 ring-[#735c00] scale-110' : 'opacity-60 hover:opacity-100'
+                              }`}
+                            >
+                              <img src={p.url} alt={p.label} className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-gray-500">
+                        Pilih foto resmi aparatur atau gunakan avatar standar ASN.
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -827,6 +1100,141 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
                 </button>
               </form>
 
+              {/* MODAL / PANEL EDIT FOTO & DATA APARATUR EXISTING */}
+              {editingEmp && (
+                <div className="p-4 bg-amber-50/80 rounded-2xl border-2 border-[#d4af37] space-y-3.5 shadow-md animate-scaleUp">
+                  <div className="flex items-center justify-between border-b border-[#d4af37]/30 pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[#735c00]">edit_square</span>
+                      <h5 className="font-headline font-bold text-xs text-[#1c1c17]">
+                        Edit Data &amp; Foto Aparatur: <span className="text-[#735c00]">{editingEmp.name}</span>
+                      </h5>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingEmp(null)}
+                      className="text-xs text-gray-500 hover:text-red-600 font-bold"
+                    >
+                      Batal
+                    </button>
+                  </div>
+
+                  {/* Foto Editor */}
+                  <div className="p-3 bg-white rounded-xl border border-[#d0c5af]/30 space-y-2">
+                    <label className="text-[10px] font-bold uppercase text-[#6B4F1D] flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm text-[#735c00]">photo_camera</span>
+                      <span>Ganti Foto Aparatur</span>
+                    </label>
+
+                    <div className="flex items-center gap-3.5">
+                      <img
+                        src={editEmpPhoto}
+                        alt={editEmpName}
+                        className="w-14 h-14 rounded-full object-cover border-2 border-[#d4af37] shadow-sm shrink-0"
+                      />
+
+                      <div className="flex-1 space-y-1.5">
+                        <input
+                          type="file"
+                          id="edit-emp-photo-input"
+                          accept="image/png, image/jpeg, image/jpg, image/webp"
+                          onChange={handleEditEmpPhotoUpload}
+                          className="hidden"
+                        />
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <label
+                            htmlFor="edit-emp-photo-input"
+                            className="px-2.5 py-1.5 bg-[#735c00] hover:bg-[#5e4b00] text-white rounded-lg text-xs font-bold cursor-pointer inline-flex items-center gap-1 active:scale-95 transition-all shadow-xs"
+                          >
+                            <span className="material-symbols-outlined text-xs">upload</span>
+                            <span>Upload Foto Baru</span>
+                          </label>
+
+                          <div className="flex items-center gap-1">
+                            {OFFICIAL_PRESET_AVATARS.map((p, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => setEditEmpPhoto(p.url)}
+                                title={p.label}
+                                className={`w-6 h-6 rounded-full border overflow-hidden transition-all cursor-pointer ${
+                                  editEmpPhoto === p.url ? 'border-[#735c00] ring-1 ring-[#735c00] scale-110' : 'opacity-60 hover:opacity-100'
+                                }`}
+                              >
+                                <img src={p.url} alt={p.label} className="w-full h-full object-cover" />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleSaveEditEmployee} className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-[#6B4F1D] mb-0.5">Nama &amp; Gelar</label>
+                        <input
+                          type="text"
+                          value={editEmpName}
+                          onChange={(e) => setEditEmpName(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-[#d0c5af]/50 rounded-lg text-xs font-bold outline-none"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-[#6B4F1D] mb-0.5">NIP</label>
+                        <input
+                          type="text"
+                          value={editEmpNip}
+                          onChange={(e) => setEditEmpNip(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-[#d0c5af]/50 rounded-lg text-xs outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-[#6B4F1D] mb-0.5">Jabatan Balai</label>
+                        <input
+                          type="text"
+                          value={editEmpJabatan}
+                          onChange={(e) => setEditEmpJabatan(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-[#d0c5af]/50 rounded-lg text-xs outline-none"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-[#6B4F1D] mb-0.5">Kata Sandi Login</label>
+                        <input
+                          type="text"
+                          value={editEmpPassword}
+                          onChange={(e) => setEditEmpPassword(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-[#d0c5af]/50 rounded-lg text-xs font-mono font-bold outline-none text-[#735c00]"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="submit"
+                        className="flex-1 py-2 bg-[#735c00] hover:bg-[#5e4b00] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-sm">save</span>
+                        <span>Simpan Foto &amp; Data Aparatur</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteEmployee(editingEmp)}
+                        className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-800 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer"
+                        title="Hapus Akun Ini"
+                      >
+                        <span className="material-symbols-outlined text-sm">delete</span>
+                        <span>Hapus</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
               {/* List of Registered Employees in this Village */}
               <div className="space-y-2">
                 <h5 className="font-headline font-bold text-xs text-[#1c1c17] flex items-center justify-between">
@@ -834,29 +1242,51 @@ export const AdminDesaModal: React.FC<AdminDesaModalProps> = ({
                   <span className="text-[10px] text-[#805533] font-normal">Hanya aparatur di balai ini</span>
                 </h5>
 
-                <div className="space-y-2 max-h-52 overflow-y-auto">
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-0.5">
                   {currentVillageEmployees.map((emp) => (
                     <div
                       key={emp.id}
-                      className="p-3 bg-[#f6f3ea] rounded-xl border border-[#d0c5af]/30 flex items-center justify-between gap-3"
+                      className="p-3 bg-[#f6f3ea] rounded-xl border border-[#d0c5af]/30 flex items-center justify-between gap-3 hover:border-[#d4af37]/60 transition-all"
                     >
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={emp.avatarUrl}
-                          alt={emp.name}
-                          className="w-9 h-9 rounded-full object-cover border border-[#d4af37]"
-                        />
-                        <div>
-                          <p className="font-bold text-xs text-[#1c1c17]">{emp.name}</p>
-                          <p className="text-[10px] text-[#805533]">{emp.jabatan}</p>
-                          <p className="text-[10px] text-gray-500 font-mono">
-                            Email: {emp.email} &bull; Password: <strong className="text-[#735c00]">{emp.password}</strong>
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="relative shrink-0">
+                          <img
+                            src={emp.avatarUrl}
+                            alt={emp.name}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-[#d4af37] shadow-xs"
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-xs text-[#1c1c17] truncate">{emp.name}</p>
+                          <p className="text-[10px] text-[#805533] font-medium truncate">{emp.jabatan}</p>
+                          <p className="text-[10px] text-gray-500 font-mono truncate">
+                            Email: {emp.email} &bull; Pass: <strong className="text-[#735c00]">{emp.password}</strong>
                           </p>
                         </div>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800">
-                        Aktif
-                      </span>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {/* Edit / Ganti Foto Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleStartEditEmployee(emp)}
+                          className="px-2.5 py-1 bg-white hover:bg-[#fffcf7] text-[#735c00] border border-[#d4af37]/60 rounded-lg text-[11px] font-bold flex items-center gap-1 shadow-xs cursor-pointer active:scale-95 transition-all"
+                          title="Ganti Foto atau Edit Data"
+                        >
+                          <span className="material-symbols-outlined text-xs">edit</span>
+                          <span>Ganti Foto &amp; Data</span>
+                        </button>
+
+                        {/* Hapus Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteEmployee(emp)}
+                          className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                          title="Hapus Akun"
+                        >
+                          <span className="material-symbols-outlined text-base">delete</span>
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

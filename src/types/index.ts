@@ -25,6 +25,7 @@ export interface DesaLicense {
   jamPulang: string;
   toleransiMenit: number;
   logoUrl?: string;
+  adminPhotoUrl?: string;
 }
 
 export interface UserProfile {

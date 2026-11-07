@@ -614,14 +614,32 @@ export function saveRegisteredEmployee(employee: UserProfile & { password: strin
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('sigap_registered_employees');
       const existing: (UserProfile & { password: string })[] = saved ? JSON.parse(saved) : [];
+      // Replace existing employee matching by ID or email
       const updated = [
         employee,
-        ...existing.filter((e) => e.email.toLowerCase() !== employee.email.toLowerCase()),
+        ...existing.filter(
+          (e) => e.id !== employee.id && e.email.toLowerCase() !== employee.email.toLowerCase()
+        ),
       ];
       localStorage.setItem('sigap_registered_employees', JSON.stringify(updated));
     }
   } catch (e) {
     console.error('Failed to save employee locally:', e);
+  }
+}
+
+export function deleteRegisteredEmployee(id: string, email: string): void {
+  try {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sigap_registered_employees');
+      const existing: (UserProfile & { password: string })[] = saved ? JSON.parse(saved) : [];
+      const filtered = existing.filter(
+        (e) => e.id !== id && e.email.toLowerCase() !== email.toLowerCase()
+      );
+      localStorage.setItem('sigap_registered_employees', JSON.stringify(filtered));
+    }
+  } catch (e) {
+    console.error('Failed to delete employee locally:', e);
   }
 }
 

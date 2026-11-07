@@ -622,3 +622,57 @@ export async function insertWorkReportToSupabase(
     return false;
   }
 }
+
+/**
+ * Super Admin: Fetch all incoming attendance records from Supabase for live monitoring & complaint handling
+ */
+export async function fetchAllAttendanceFromSupabase(limit: number = 50): Promise<any[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+
+  try {
+    const { data, error } = await client
+      .from('attendance_records')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (!error && data) {
+      return data;
+    }
+
+    // Fallback if created_at column is not present
+    const { data: fallbackData } = await client
+      .from('attendance_records')
+      .select('*')
+      .order('date', { ascending: false })
+      .limit(limit);
+
+    return fallbackData || [];
+  } catch (e) {
+    console.warn('Failed to fetch all attendance from Supabase:', e);
+    return [];
+  }
+}
+
+/**
+ * Super Admin: Fetch all incoming work reports from Supabase for live monitoring & complaint handling
+ */
+export async function fetchAllWorkReportsFromSupabase(limit: number = 50): Promise<any[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+
+  try {
+    const { data, error } = await client
+      .from('work_reports')
+      .select('*')
+      .order('date', { ascending: false })
+      .limit(limit);
+
+    return data || [];
+  } catch (e) {
+    console.warn('Failed to fetch all work reports from Supabase:', e);
+    return [];
+  }
+}
+

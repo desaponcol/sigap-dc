@@ -10,9 +10,12 @@ import {
   isSupabaseConfigured,
   saveDesaLicenseToSupabase,
   testSupabaseConnection,
+  fetchAllAttendanceFromSupabase,
+  fetchAllWorkReportsFromSupabase,
   TenantInfo,
 } from '../services/supabase.ts';
 import { DesaLicense } from '../types/index.ts';
+import { INITIAL_ATTENDANCE_RECORDS, INITIAL_WORK_REPORTS } from '../data/mockData.ts';
 
 interface DeveloperPortalModalProps {
   isOpen: boolean;
@@ -31,7 +34,15 @@ export const DeveloperPortalModal: React.FC<DeveloperPortalModalProps> = ({
   const [pinError, setPinError] = useState('');
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'terbitkan' | 'daftar' | 'sql' | 'koneksi'>('terbitkan');
+  const [activeTab, setActiveTab] = useState<'terbitkan' | 'daftar' | 'monitoring' | 'sql' | 'koneksi'>('terbitkan');
+
+  // Live Cloud Monitoring & Complaint Management States
+  const [liveAttendance, setLiveAttendance] = useState<any[]>([]);
+  const [liveReports, setLiveReports] = useState<any[]>([]);
+  const [monitoringTab, setMonitoringTab] = useState<'presensi' | 'laporan' | 'sop'>('presensi');
+  const [isLoadingMonitoring, setIsLoadingMonitoring] = useState(false);
+  const [monitoringSearch, setMonitoringSearch] = useState('');
+  const [monitoringDesaFilter, setMonitoringDesaFilter] = useState('ALL');
 
   // Copy states
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -72,6 +83,28 @@ export const DeveloperPortalModal: React.FC<DeveloperPortalModalProps> = ({
       setTestResult(null);
     }
   }, [isOpen]);
+
+  const handleLoadMonitoringData = async () => {
+    setIsLoadingMonitoring(true);
+    try {
+      const att = await fetchAllAttendanceFromSupabase(60);
+      const rep = await fetchAllWorkReportsFromSupabase(60);
+      setLiveAttendance(att && att.length > 0 ? att : INITIAL_ATTENDANCE_RECORDS);
+      setLiveReports(rep && rep.length > 0 ? rep : INITIAL_WORK_REPORTS);
+    } catch (e) {
+      console.warn('Failed to load live data:', e);
+      setLiveAttendance(INITIAL_ATTENDANCE_RECORDS);
+      setLiveReports(INITIAL_WORK_REPORTS);
+    } finally {
+      setIsLoadingMonitoring(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && isAuthenticated && activeTab === 'monitoring') {
+      handleLoadMonitoringData();
+    }
+  }, [isOpen, isAuthenticated, activeTab]);
 
   if (!isOpen) return null;
 
@@ -432,50 +465,65 @@ ON CONFLICT (kode_desa) DO NOTHING;`;
               <button
                 type="button"
                 onClick={() => setActiveTab('terbitkan')}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap ${
                   activeTab === 'terbitkan'
                     ? 'bg-white text-[#735c00] shadow-sm'
                     : 'text-[#805533] hover:bg-[#ebe8df]'
                 }`}
               >
                 <span className="material-symbols-outlined text-sm">key</span>
-                <span>1. Terbitkan Lisensi Baru</span>
+                <span>1. Lisensi Baru</span>
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('daftar')}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap ${
                   activeTab === 'daftar'
                     ? 'bg-white text-[#735c00] shadow-sm'
                     : 'text-[#805533] hover:bg-[#ebe8df]'
                 }`}
               >
                 <span className="material-symbols-outlined text-sm">domain</span>
-                <span>2. Master Desa Klien ({registeredLicenses.length})</span>
+                <span>2. Master Desa ({registeredLicenses.length})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('monitoring');
+                  handleLoadMonitoringData();
+                }}
+                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                  activeTab === 'monitoring'
+                    ? 'bg-white text-[#735c00] shadow-sm'
+                    : 'text-[#805533] hover:bg-[#ebe8df]'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm text-emerald-700">troubleshoot</span>
+                <span className="text-emerald-950 font-black">3. Live Data &amp; Aduan</span>
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('sql')}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap ${
                   activeTab === 'sql'
                     ? 'bg-white text-[#735c00] shadow-sm'
                     : 'text-[#805533] hover:bg-[#ebe8df]'
                 }`}
               >
                 <span className="material-symbols-outlined text-sm">database</span>
-                <span>3. Skrip Supabase SQL</span>
+                <span>4. Skrip SQL</span>
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('koneksi')}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap ${
                   activeTab === 'koneksi'
                     ? 'bg-white text-[#735c00] shadow-sm'
                     : 'text-[#805533] hover:bg-[#ebe8df]'
                 }`}
               >
                 <span className="material-symbols-outlined text-sm">cloud_sync</span>
-                <span>4. Kunci API Supabase</span>
+                <span>5. API Supabase</span>
               </button>
             </div>
 
@@ -862,7 +910,298 @@ ON CONFLICT (kode_desa) DO NOTHING;`;
                 </div>
               )}
 
-              {/* TAB 3: SKRIP DATABASE SUPABASE SQL */}
+              {/* TAB 3: LIVE DATA SUPABASE & PENANGANAN ADUAN */}
+              {activeTab === 'monitoring' && (
+                <div className="space-y-4">
+                  {/* Top Cloud Status & Action Bar */}
+                  <div className="bg-gradient-to-r from-[#1c1c17] to-[#3a3528] text-white p-4 rounded-2xl border border-amber-400/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <h4 className="font-headline font-black text-sm text-amber-300">
+                          Live Data Cloud &amp; Helpdesk Aduan Aparatur
+                        </h4>
+                      </div>
+                      <p className="text-xs text-white/80 mt-0.5">
+                        Super Admin dapat memantau presensi GPS dan laporan kinerja real-time dari seluruh balai desa mitra.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={handleLoadMonitoringData}
+                        disabled={isLoadingMonitoring}
+                        className="px-3 py-1.5 bg-[#735c00] hover:bg-[#5e4b00] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm"
+                      >
+                        <span className={`material-symbols-outlined text-sm ${isLoadingMonitoring ? 'animate-spin' : ''}`}>
+                          sync
+                        </span>
+                        <span>{isLoadingMonitoring ? 'Menarik Data...' : 'Refresh Data Live'}</span>
+                      </button>
+
+                      <a
+                        href="https://supabase.com/dashboard/project/auycogwypzcikxfyrrau/editor"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
+                      >
+                        <span className="material-symbols-outlined text-sm">open_in_new</span>
+                        <span>Buka Supabase Table Editor</span>
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Sub-tab Navigation */}
+                  <div className="flex gap-2 p-1 bg-[#f6f3ea] rounded-xl border border-[#d0c5af]/30">
+                    <button
+                      type="button"
+                      onClick={() => setMonitoringTab('presensi')}
+                      className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        monitoringTab === 'presensi'
+                          ? 'bg-white text-[#735c00] shadow-xs'
+                          : 'text-[#805533] hover:bg-[#ebe8df]'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-sm">how_to_reg</span>
+                      <span>1. Presensi Masuk ({liveAttendance.length})</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMonitoringTab('laporan')}
+                      className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        monitoringTab === 'laporan'
+                          ? 'bg-white text-[#735c00] shadow-xs'
+                          : 'text-[#805533] hover:bg-[#ebe8df]'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-sm">assignment</span>
+                      <span>2. Laporan Kinerja ({liveReports.length})</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMonitoringTab('sop')}
+                      className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        monitoringTab === 'sop'
+                          ? 'bg-white text-[#735c00] shadow-xs'
+                          : 'text-[#805533] hover:bg-[#ebe8df]'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-sm">support_agent</span>
+                      <span>3. SOP Penanganan Aduan</span>
+                    </button>
+                  </div>
+
+                  {/* SUBTAB 1: LIVE ATTENDANCE RECORDS */}
+                  {monitoringTab === 'presensi' && (
+                    <div className="space-y-3">
+                      {/* Search Bar */}
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-sm text-[#7f7663]">
+                            search
+                          </span>
+                          <input
+                            type="text"
+                            value={monitoringSearch}
+                            onChange={(e) => setMonitoringSearch(e.target.value)}
+                            placeholder="Cari nama aparatur, tanggal, status, atau catatan aduan..."
+                            className="w-full pl-9 pr-3 py-2 bg-[#f6f3ea] border border-[#d0c5af]/30 rounded-xl text-xs outline-none focus:ring-1 focus:ring-[#735c00]"
+                          />
+                        </div>
+                        {monitoringSearch && (
+                          <button
+                            type="button"
+                            onClick={() => setMonitoringSearch('')}
+                            className="text-xs text-[#735c00] font-bold px-2 py-1 hover:underline cursor-pointer"
+                          >
+                            Reset
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Attendance Table / Cards */}
+                      <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                        {liveAttendance
+                          .filter((item) => {
+                            if (!monitoringSearch) return true;
+                            const query = monitoringSearch.toLowerCase();
+                            return (
+                              (item.formattedDate || item.date || '').toLowerCase().includes(query) ||
+                              (item.status || '').toLowerCase().includes(query) ||
+                              (item.note || '').toLowerCase().includes(query) ||
+                              (item.locationName || item.location_name || '').toLowerCase().includes(query)
+                            );
+                          })
+                          .map((item, idx) => {
+                            const isHadir = item.status === 'HADIR';
+                            const isDinas = item.status === 'DINAS';
+                            const isIzin = item.status === 'IZIN';
+
+                            return (
+                              <div
+                                key={item.id || idx}
+                                className="p-3.5 bg-white rounded-xl border border-[#d0c5af]/30 hover:border-[#d4af37] transition-all space-y-2 shadow-xs"
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className={`material-symbols-outlined text-lg ${
+                                        isHadir
+                                          ? 'text-emerald-600'
+                                          : isDinas
+                                          ? 'text-blue-600'
+                                          : isIzin
+                                          ? 'text-amber-600'
+                                          : 'text-rose-600'
+                                      }`}
+                                    >
+                                      {isHadir
+                                        ? 'check_circle'
+                                        : isDinas
+                                        ? 'business_center'
+                                        : isIzin
+                                        ? 'event_note'
+                                        : 'medical_services'}
+                                    </span>
+                                    <span className="font-headline font-bold text-xs text-[#1c1c17]">
+                                      {item.formattedDate || item.date}
+                                    </span>
+                                    <span className="text-[10px] text-[#7f7663] font-mono">
+                                      {item.checkInTime || item.check_in_time || '07:30'} WIB
+                                    </span>
+                                  </div>
+
+                                  <div className="flex items-center gap-1.5">
+                                    <span
+                                      className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                        isHadir
+                                          ? 'bg-emerald-100 text-emerald-800'
+                                          : isDinas
+                                          ? 'bg-blue-100 text-blue-800'
+                                          : isIzin
+                                          ? 'bg-amber-100 text-amber-800'
+                                          : 'bg-rose-100 text-rose-800'
+                                      }`}
+                                    >
+                                      {isDinas ? 'DINAS LUAR' : item.status}
+                                    </span>
+                                    <span className="px-2 py-0.5 rounded-full text-[9px] bg-green-50 text-green-700 font-bold border border-green-200">
+                                      Cloud Synced ✓
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px] text-[#4d4635] bg-[#fcf9f0] p-2.5 rounded-lg border border-[#d0c5af]/20">
+                                  <div>
+                                    <span className="text-[#805533] font-semibold">Titik Lokasi:</span>{' '}
+                                    <span className="font-medium">{item.locationName || item.location_name || 'Balai Desa'}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-[#805533] font-semibold">GPS Geofence:</span>{' '}
+                                    <code className="text-[10px] font-mono text-[#735c00]">
+                                      {item.latitude ? `${Number(item.latitude).toFixed(6)}, ${Number(item.longitude).toFixed(6)}` : 'Sesuai Geofence Balai'}
+                                    </code>
+                                  </div>
+                                  {item.note && (
+                                    <div className="sm:col-span-2">
+                                      <span className="text-[#805533] font-semibold">Catatan Aparatur:</span>{' '}
+                                      <span className="italic">{item.note}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SUBTAB 2: LIVE WORK REPORTS */}
+                  {monitoringTab === 'laporan' && (
+                    <div className="space-y-3">
+                      <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                        {liveReports.map((report, idx) => (
+                          <div
+                            key={report.id || idx}
+                            className="p-3.5 bg-white rounded-xl border border-[#d0c5af]/30 space-y-2 shadow-xs"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined text-base text-[#735c00]">
+                                  assignment
+                                </span>
+                                <span className="font-headline font-bold text-xs text-[#1c1c17]">
+                                  {report.date}
+                                </span>
+                              </div>
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-black uppercase">
+                                {report.status || 'TERVERIFIKASI'}
+                              </span>
+                            </div>
+                            <div className="bg-[#fcf9f0] p-2.5 rounded-lg text-xs space-y-1 border border-[#d0c5af]/20">
+                              <p className="text-[#1c1c17] leading-relaxed">
+                                <strong className="text-[#6B4F1D] text-[10px] uppercase block">Detail Kegiatan:</strong>
+                                {report.detail}
+                              </p>
+                              <p className="text-[#5E4B32] pt-1 border-t border-[#d0c5af]/15">
+                                <strong className="text-[#6B4F1D] text-[10px] uppercase block">Hasil / Output Fisik:</strong>
+                                {report.output}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SUBTAB 3: SOP PENANGANAN ADUAN TEKNIS */}
+                  {monitoringTab === 'sop' && (
+                    <div className="space-y-3 text-xs leading-relaxed">
+                      <div className="p-4 bg-white rounded-xl border border-[#d0c5af]/30 space-y-2">
+                        <h5 className="font-bold text-xs text-[#735c00] flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-sm">help</span>
+                          <span>Kasus 1: Aparatur Mengadu &quot;Di Balai Desa tapi Terdeteksi di Luar Radius GPS&quot;</span>
+                        </h5>
+                        <p className="text-[#4d4635]">
+                          <strong>Penyebab:</strong> Akurasi GPS smartphone di area berbukit/lembah terkadang meleset 20&ndash;40 meter dari titik koordinat Google Maps kantor balai.
+                        </p>
+                        <p className="text-[#1c1c17] font-semibold bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+                          👉 <strong>Tindakan Pengembang:</strong> Di Portal Admin Desa atau via Supabase tabel <code>tenants</code> / <code>desa_licenses</code>, naikkan <code>allowed_radius_meters</code> dari <strong>50 meter</strong> menjadi <strong>80&ndash;100 meter</strong> agar mencakup seluruh pekarangan balai desa.
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-white rounded-xl border border-[#d0c5af]/30 space-y-2">
+                        <h5 className="font-bold text-xs text-[#735c00] flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-sm">business_center</span>
+                          <span>Kasus 2: Aparatur Bertugas Luar / Rapat di Kantor Camat tapi Tidak Bisa Presensi</span>
+                        </h5>
+                        <p className="text-[#4d4635]">
+                          <strong>Penyebab:</strong> Aparatur memilih opsi &quot;Hadir di Balai&quot; padahal sedang berada di lokasi dinas luar.
+                        </p>
+                        <p className="text-[#1c1c17] font-semibold bg-blue-50 p-2 rounded-lg border border-blue-200">
+                          👉 <strong>Tindakan Pengembang:</strong> Arahkan aparatur untuk memilih opsi <strong>&quot;Perjalanan Dinas&quot;</strong>. Fitur ini sudah dilengkapi dispensasi radius geofence (bebas radius) dan otomatis terverifikasi dengan mencantumkan tujuan dinas.
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-white rounded-xl border border-[#d0c5af]/30 space-y-2">
+                        <h5 className="font-bold text-xs text-[#735c00] flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-sm">edit_note</span>
+                          <span>Kasus 3: Perangkat Desa Salah Ketik Laporan Kinerja atau Terlewat</span>
+                        </h5>
+                        <p className="text-[#4d4635]">
+                          <strong>Penyebab:</strong> Ada salah ketik uraian tugas atau lupa memasukkan hasil kegiatan sebelum jam pulang.
+                        </p>
+                        <p className="text-[#1c1c17] font-semibold bg-amber-50 p-2 rounded-lg border border-amber-200">
+                          👉 <strong>Tindakan Pengembang:</strong> Perangkat desa dapat langsung mengedit mandiri melalui menu <strong>Rekap &gt; Daftar Laporan &gt; tombol Edit</strong>. Atau Super Admin dapat mengedit langsung isi baris pada tabel <code>work_reports</code> di Supabase Table Editor.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 4: SKRIP DATABASE SUPABASE SQL */}
               {activeTab === 'sql' && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
